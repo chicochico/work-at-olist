@@ -6,4 +6,6 @@
 *.tmproj
 *.log
 .env
+.sqlite3
 tmp
+Session.vim
