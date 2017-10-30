@@ -9,3 +9,4 @@
 .sqlite3
 tmp
 Session.vim
+production_settings.py
