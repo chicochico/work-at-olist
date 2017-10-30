@@ -6,7 +6,7 @@
 *.tmproj
 *.log
 .env
-.sqlite3
+*.sqlite3
 tmp
 Session.vim
-production_settings.py
+local_settings.py
