@@ -38,18 +38,16 @@ class Command(BaseCommand):
             for category in categories:
                 Category.add(category, channel)
 
-            ok_msg = self.style.SUCCESS(
-                '{} categories from {} added to channel {}.'.format(len(categories),
-                                                                    options['file'],
-                                                                    options['channel'])
-            )
+            ok_str = 'Channel {} updated with {} categories from file: {}'
+            ok_msg = self.style.SUCCESS(ok_str.format(options['channel'],
+                                                      len(categories),
+                                                      options['file']))
             self.stdout.write(ok_msg)
         except FileNotFoundError:
             error_msg = self.style.ERROR(
                 'File {} not found.'.format(options['file'])
             )
             self.stderr.write(error_msg)
-            return
 
 
     def parse_file(self, file, separator):
