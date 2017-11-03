@@ -3,21 +3,23 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.db.utils import IntegrityError
 from django.utils.six import StringIO
-from .models import Category
+from .models import Category, Channel
 
 
-
-class CategoryTestCase(TestCase):
+class ChannelTestCase(TestCase):
     def test_add_new_channel(self):
         # the root of a tree represents a channel
-        channel = Category.objects.create(name='FooChannel')
-        all_channels = Category.objects.root_nodes()
+        categories_root = Category.objects.create(name='FooChannel')
+        channel = Channel.objects.create(
+            name='FooChannel',
+            categories=categories_root)
+        all_channels = Channel.objects.all()
         self.assertIn(all_channels, channel)
 
     def test_add_single_category(self):
         channel = Category.objects.get(name='FooChannel')
-        Category.objects.create(name='Home & Garden', parent=channel)
-        self.assertEqual(len(channel.get_children()), 1)
+        channel.add_category(['Home & Garden'])
+        self.assertEqual(len(channel.categories.get_children()), 1)
 
     def test_add_multilevel_categories(self):
         category = [
@@ -26,9 +28,9 @@ class CategoryTestCase(TestCase):
             'Laundry Appliances',
             'Dryers',
         ]
-        channel = Category.objects.get(name='FooChannel', parent=None)
+        channel = Category.objects.get(name='FooChannel')
         channel.add_category(category)
-        children = channel.get_children()
+        children = channel.categories.get_children()
         self.assertEqual(len(category), len(children))
 
     def test_add_subcategory_to_existing_category(self):
@@ -40,17 +42,17 @@ class CategoryTestCase(TestCase):
         ]
         channel = Category.objects.get(name='FooChannel')
         channel.add_category(category)
-        children = channel.get_children()
+        children = channel.categories.get_children()
         self.assertEqual(len(children), 7)
 
     def test_channel_name_must_be_unique(self):
         with self.assertRaises(IntegrityError):
-            Category.objects.create(name='FooChannel')
+            Channel.objects.create(name='FooChannel')
 
     def test_no_duplicate_category_on_same_level(self):
         with self.assertRaises(IntegrityError):
-            channel = Category.objects.get(name='FooChannel', parent=None)
-            Channel.objects.create(name='Home & Garden', parent=channel)
+            channel = Channel.objects.get(name='FooChannel')
+            Channel.objects.create(name='Home & Garden', parent=channel.categories)
 
 
 class ImportCategoriesTest(TestCase):
