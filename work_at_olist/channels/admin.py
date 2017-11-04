@@ -1,12 +1,7 @@
 from django.contrib import admin
 from .models import Category, Channel
+from mptt.admin import MPTTModelAdmin
 
 
-@admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(Channel)
-class ChannelAdmin(admin.ModelAdmin):
-    pass
+admin.site.register(Category, MPTTModelAdmin)
+admin.site.register(Channel)
