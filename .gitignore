@@ -10,3 +10,5 @@
 tmp
 Session.vim
 local_settings.py
+*.ipynb
+.ipynb_checkpoints
