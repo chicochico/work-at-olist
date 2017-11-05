@@ -1,3 +1,5 @@
+import unittest
+
 from django.test import TestCase
 from django.core.management import call_command
 from django.core.management.base import CommandError
@@ -7,18 +9,22 @@ from .models import Category, Channel
 
 
 class ChannelTestCase(TestCase):
-    def test_add_new_channel(self):
-        # the root of a tree represents a channel
-        categories_root = Category.objects.create(name='FooChannel')
-        channel = Channel.objects.create(
-            name='FooChannel',
-            categories=categories_root)
-        all_channels = Channel.objects.all()
-        self.assertIn(all_channels, channel)
+    def setUp(self):
+        self.channel = Channel.create('FooChannel')
+
+    def test_create_new_channel(self):
+        Channel.create('BarChannel')
+        self.assertTrue(Channel.objects.filter(name='BarChannel').exists())
+
+    def test_categories_root_is_created(self):
+        self.assertIsInstance(self.channel.categories, Category)
+
+    def test_channel_name_must_be_unique(self):
+        with self.assertRaises(IntegrityError):
+            Channel.objects.create(name='FooChannel')
 
     def test_add_single_category(self):
-        channel = Category.objects.get(name='FooChannel')
-        channel.add_category(['Home & Garden'])
+        self.channel.add_category(['Home & Garden'])
         self.assertEqual(len(channel.categories.get_children()), 1)
 
     def test_add_multilevel_categories(self):
@@ -28,7 +34,6 @@ class ChannelTestCase(TestCase):
             'Laundry Appliances',
             'Dryers',
         ]
-        channel = Category.objects.get(name='FooChannel')
         channel.add_category(category)
         children = channel.categories.get_children()
         self.assertEqual(len(category), len(children))
@@ -40,21 +45,16 @@ class ChannelTestCase(TestCase):
             'Kitchen Tools & Utensils',
             'Food Graters & Zesters',
         ]
-        channel = Category.objects.get(name='FooChannel')
         channel.add_category(category)
         children = channel.categories.get_children()
         self.assertEqual(len(children), 7)
 
-    def test_channel_name_must_be_unique(self):
-        with self.assertRaises(IntegrityError):
-            Channel.objects.create(name='FooChannel')
-
     def test_no_duplicate_category_on_same_level(self):
         with self.assertRaises(IntegrityError):
-            channel = Channel.objects.get(name='FooChannel')
-            Channel.objects.create(name='Home & Garden', parent=channel.categories)
+            Category.create(name='Home & Garden', parent=self.channel.categories)
 
 
+@unittest.skip('temporarily skip command tests')
 class ImportCategoriesTest(TestCase):
     def test_non_existing_file(self):
         out = StringIO()
