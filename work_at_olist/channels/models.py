@@ -47,16 +47,23 @@ class Channel(models.Model):
     def __str__(self):
         return self.name
 
+    def add_category(self, path):
+        """path is a list containing the path to the category"""
+        head, *tail = path
+        parent, _ = Category.objects.get_or_create(name=head,
+                                                   parent=self.categories)
+        for element in tail:
+            parent, _ = Category.objects.get_or_create(name=element,
+                                                       parent=parent)
+
     @classmethod
     def create(cls, name):
-        cls.objects.create(name=name)
+        return cls.objects.create(name=name)
 
 
 @receiver(pre_save, sender=Channel)
 def create_root_categories(sender, instance, **kwargs):
-    '''
-    add categories root if it doesnt exist
-    '''
+    """add categories root if it doesnt exist"""
     if not hasattr(instance, 'categories'):
         cat = Category.create(instance.name)
         instance.categories = cat
