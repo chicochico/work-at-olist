@@ -8,7 +8,7 @@ from django.utils.six import StringIO
 from .models import Category, Channel
 
 
-class ChannelTestCase(TestCase):
+class ChannelCategoriesInsertionTestCase(TestCase):
     def setUp(self):
         """setup the channel used by unit tests"""
         self.channel = Channel.create('FooChannel')
@@ -65,6 +65,63 @@ class ChannelTestCase(TestCase):
                                     parent=self.channel.categories)
             Category.objects.create(name='Home & Garden',
                                     parent=self.channel.categories)
+
+
+class ChannelCategoriesRetrievalTestCare(TestCase):
+    def setUp(self):
+        categories = [
+            ['Home & Garden',
+             'Kitchen & Dining',
+             'Kitchen Tools & Utensils',
+             'Food Graters & Zesters'],
+            ['Home & Garden',
+             'Household Appliances',
+             'Laundry Appliances',
+             'Dryers'],
+        ]
+        self.channel = Channel.create('foo')
+
+        for category in categories:
+            self.channel.add_category(category)
+
+    def test_get_categories_count(self):
+        count = self.channel.get_categories_count()
+        self.assertEqual(count, 7)
+
+    def test_get_all_categories_full_paths(self):
+        expected = [
+            ['Home & Garden'],
+            ['Home & Garden',
+             'Kitchen & Dining'],
+            ['Home & Garden',
+             'Kitchen & Dining',
+             'Kitchen Tools & Utensils'],
+            ['Home & Garden',
+             'Kitchen & Dining',
+             'Kitchen Tools & Utensils',
+             'Food Graters & Zesters'],
+            ['Home & Garden',
+             'Household Appliances'],
+            ['Home & Garden',
+             'Household Appliances',
+             'Laundry Appliances'],
+            ['Home & Garden',
+             'Household Appliances',
+             'Laundry Appliances',
+             'Dryers'],
+        ]
+        paths = self.channel.get_all_categories()
+        self.assertEqual(paths, expected)
+
+    def test_get_specific_category_path(self):
+        expected = ['Home & Garden', 'Household Appliances', 'Laundry Appliances']
+        path = self.channel.get_category('Laundry Appliances')
+        self.assertEqual(path, expected)
+
+    def test_get_root_category_path(self):
+        expected = ['Home & Garden']
+        path = self.channel.get_category('Home & Garden')
+        self.assertEqual(path, expected)
 
 
 @unittest.skip('temporarily skip command tests')
