@@ -97,26 +97,18 @@ class ChannelCategoriesRetrievalTestCare(TestCase):
         self.assertEqual(count, 7)
 
     def test_get_all_categories_full_paths(self):
+        """
+        all categories should return a list of paths to each
+        category ordered by name
+        """
         expected = [
             ['Home & Garden'],
-            ['Home & Garden',
-             'Kitchen & Dining'],
-            ['Home & Garden',
-             'Kitchen & Dining',
-             'Kitchen Tools & Utensils'],
-            ['Home & Garden',
-             'Kitchen & Dining',
-             'Kitchen Tools & Utensils',
-             'Food Graters & Zesters'],
-            ['Home & Garden',
-             'Household Appliances'],
-            ['Home & Garden',
-             'Household Appliances',
-             'Laundry Appliances'],
-            ['Home & Garden',
-             'Household Appliances',
-             'Laundry Appliances',
-             'Dryers'],
+            ['Home & Garden', 'Household Appliances'],
+            ['Home & Garden', 'Household Appliances', 'Laundry Appliances'],
+            ['Home & Garden', 'Household Appliances', 'Laundry Appliances', 'Dryers'],
+            ['Home & Garden', 'Kitchen & Dining'],
+            ['Home & Garden', 'Kitchen & Dining', 'Kitchen Tools & Utensils'],
+            ['Home & Garden', 'Kitchen & Dining', 'Kitchen Tools & Utensils', 'Food Graters & Zesters']
         ]
         paths = self.channel.get_all_categories()
         self.assertEqual(paths, expected)

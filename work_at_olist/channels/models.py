@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from mptt.models import MPTTModel, TreeForeignKey
+from mptt.fields import TreeOneToOneField
 
 
 class CategoryTree(MPTTModel):
@@ -30,9 +31,15 @@ class CategoryTree(MPTTModel):
     def create(cls, name, parent=None):
         return cls.objects.create(name=name, parent=parent)
 
+    def get_path_to_root(self):
+        """get the path from the root to the category as a list"""
+        ancestors = self.get_ancestors(include_self=True)
+        # start from 1 because 0 is the root of the tree
+        return [node.name for node in ancestors[1:]]
+
 
 class Channel(models.Model):
-    categories = models.OneToOneField(
+    categories = TreeOneToOneField(
         CategoryTree,
         on_delete=models.CASCADE,
         related_name='root_of',
@@ -59,6 +66,28 @@ class Channel(models.Model):
         for element in tail:
             parent, _ = CategoryTree.objects.get_or_create(name=element,
                                                            parent=parent)
+
+    def get_categories_count(self):
+        tree_id = self.categories.tree_id
+        count = CategoryTree.objects.filter(tree_id=tree_id).count()
+        return count - 1  # not including the root
+
+    def get_category(self, name):
+        """get a category path by its name"""
+        tree_id = self.categories.tree_id
+        try:
+            category = CategoryTree.objects.get(tree_id=tree_id, name=name)
+            return category.get_path_to_root()
+        except Category.DoesNotExist:
+            raise
+
+    def get_all_categories(self):
+        """
+        get all the categories of this channel
+        the result is a list of lists
+        """
+        all_categories = CategoryTree.objects.get(root_of=self).get_family()
+        return [category.get_path_to_root() for category in all_categories[1:]]
 
 
 @receiver(pre_save, sender=Channel)
