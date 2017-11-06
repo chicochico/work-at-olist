@@ -20,7 +20,7 @@ class CategoryTree(MPTTModel):
         order_insertion_by = ['name']
 
     class Meta:
-        unique_together = (('name', 'parent'),)
+        unique_together = (('name', 'tree_id'),)
         verbose_name_plural = 'categories'
 
     def __str__(self):

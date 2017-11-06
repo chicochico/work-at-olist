@@ -67,7 +67,7 @@ class ChannelCategoriesInsertionTestCase(TestCase):
         children_count = len(self.channel.categories.get_family())
         self.assertEqual(children_count, 7)
 
-    def test_no_duplicate_category_on_same_level(self):
+    def test_no_duplicate_category_on_same_tree(self):
         with self.assertRaises(IntegrityError):
             CategoryTree.objects.create(name='Home & Garden',
                                     parent=self.channel.categories)
