@@ -65,5 +65,5 @@ class Channel(models.Model):
 def create_root_categories(sender, instance, **kwargs):
     """add categories root if it doesnt exist"""
     if not hasattr(instance, 'categories'):
-        cat = CategoryTree.create(instance.name)
+        cat = CategoryTree.create(instance.name + '_root')
         instance.categories = cat

@@ -20,6 +20,14 @@ class ChannelCategoriesInsertionTestCase(TestCase):
         """check if the channel's categories relation is added automatically"""
         self.assertIsInstance(self.channel.categories, CategoryTree)
 
+    def test_categories_root_naming(self):
+        """
+        when automatically creating a category root
+        for a channel, append '_root' to channel's name.
+        This helps when using admin pages, and shell.
+        """
+        self.assertTrue(self.channel.categories.name.endswith('_root'))
+
     def test_channel_name_must_be_unique(self):
         with self.assertRaises(IntegrityError):
             Channel.objects.create(name='FooChannel')
