@@ -16,15 +16,15 @@ class CategoryTree(MPTTModel):
         db_index=True
     )
 
-    def __str__(self):
-        return self.name
-
     class MPTTMeta:
         order_insertion_by = ['name']
 
     class Meta:
         unique_together = (('name', 'parent'),)
         verbose_name_plural = 'categories'
+
+    def __str__(self):
+        return self.name
 
     @classmethod
     def create(cls, name, parent=None):
@@ -47,18 +47,18 @@ class Channel(models.Model):
     def __str__(self):
         return self.name
 
+    @classmethod
+    def create(cls, name):
+        return cls.objects.create(name=name)
+
     def add_category(self, path):
         """path is a list containing the path to the category"""
         head, *tail = path
         parent, _ = CategoryTree.objects.get_or_create(name=head,
-                                                   parent=self.categories)
+                                                       parent=self.categories)
         for element in tail:
             parent, _ = CategoryTree.objects.get_or_create(name=element,
-                                                       parent=parent)
-
-    @classmethod
-    def create(cls, name):
-        return cls.objects.create(name=name)
+                                                           parent=parent)
 
 
 @receiver(pre_save, sender=Channel)
