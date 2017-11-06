@@ -4,7 +4,7 @@ from django.dispatch import receiver
 from mptt.models import MPTTModel, TreeForeignKey
 
 
-class Category(MPTTModel):
+class CategoryTree(MPTTModel):
     name = models.CharField(
         max_length=255,
     )
@@ -33,7 +33,7 @@ class Category(MPTTModel):
 
 class Channel(models.Model):
     categories = models.OneToOneField(
-        Category,
+        CategoryTree,
         on_delete=models.CASCADE,
         related_name='root_of',
     )
@@ -50,10 +50,10 @@ class Channel(models.Model):
     def add_category(self, path):
         """path is a list containing the path to the category"""
         head, *tail = path
-        parent, _ = Category.objects.get_or_create(name=head,
+        parent, _ = CategoryTree.objects.get_or_create(name=head,
                                                    parent=self.categories)
         for element in tail:
-            parent, _ = Category.objects.get_or_create(name=element,
+            parent, _ = CategoryTree.objects.get_or_create(name=element,
                                                        parent=parent)
 
     @classmethod
@@ -65,5 +65,5 @@ class Channel(models.Model):
 def create_root_categories(sender, instance, **kwargs):
     """add categories root if it doesnt exist"""
     if not hasattr(instance, 'categories'):
-        cat = Category.create(instance.name)
+        cat = CategoryTree.create(instance.name)
         instance.categories = cat

@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from channels.models import Category, Channel
+from channels.models import CategoryTree, Channel
 
 import random
 
@@ -27,27 +27,35 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             categories = self.parse_file(options['file'], options['separator'])
-
-            # get channel or insert new if it doesnt exist
-            try:
-                channel = Channel.objects.get(name=options['channel'])
-            except channel.models.DoesNotExist:
-                channel = Channel(options['channel'])
-                channel.save()
-
-            for category in categories:
-                Category.add(category, channel)
-
-            ok_str = 'Channel {} updated with {} categories from file: {}'
-            ok_msg = self.style.SUCCESS(ok_str.format(options['channel'],
-                                                      len(categories),
-                                                      options['file']))
-            self.stdout.write(ok_msg)
         except FileNotFoundError:
             error_msg = self.style.ERROR(
                 'File {} not found.'.format(options['file'])
             )
             self.stderr.write(error_msg)
+            return
+
+        # get channel or insert new if it doesnt exist
+        if Channel.objects.filter(name=options['channel']).exists():
+            channel = Channel.objects.get(name=options['channel'])
+            # delete all existing categories from channel
+            channel.categories.delete()
+            # create new categories root
+            channel.categories = CategoryTree.objects.create(name=options['channel'])
+            channel.save()
+        else:
+            channel = Channel.objects.create(
+                name=options['channel'],
+                categories=CategoryTree.objects.create(name=options['channel'])
+            )
+
+        for category in categories:
+            channel.categories.add_category(category)
+
+        ok_str = 'Channel {} updated with {} categories from file: {}'
+        ok_msg = self.style.SUCCESS(ok_str.format(options['channel'],
+                                                  len(categories),
+                                                  options['file']))
+        self.stdout.write(ok_msg)
 
 
     def parse_file(self, file, separator):

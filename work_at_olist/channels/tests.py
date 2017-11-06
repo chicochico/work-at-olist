@@ -5,7 +5,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.db.utils import IntegrityError
 from django.utils.six import StringIO
-from .models import Category, Channel
+from .models import CategoryTree, Channel
 
 
 class ChannelCategoriesInsertionTestCase(TestCase):
@@ -18,7 +18,7 @@ class ChannelCategoriesInsertionTestCase(TestCase):
 
     def test_categories_root_is_created(self):
         """check if the channel's categories relation is added automatically"""
-        self.assertIsInstance(self.channel.categories, Category)
+        self.assertIsInstance(self.channel.categories, CategoryTree)
 
     def test_channel_name_must_be_unique(self):
         with self.assertRaises(IntegrityError):
@@ -61,9 +61,9 @@ class ChannelCategoriesInsertionTestCase(TestCase):
 
     def test_no_duplicate_category_on_same_level(self):
         with self.assertRaises(IntegrityError):
-            Category.objects.create(name='Home & Garden',
+            CategoryTree.objects.create(name='Home & Garden',
                                     parent=self.channel.categories)
-            Category.objects.create(name='Home & Garden',
+            CategoryTree.objects.create(name='Home & Garden',
                                     parent=self.channel.categories)
 
 
