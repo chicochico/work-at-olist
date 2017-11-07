@@ -59,7 +59,7 @@ class Command(BaseCommand):
         '''
         try:
             data = open(file, 'r').read().splitlines()
-            return [s.split(separator) for s in data]
+            return [s.split(separator) for s in data if s != '']
         except FileNotFoundError:
             raise
 
