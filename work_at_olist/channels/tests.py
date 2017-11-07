@@ -124,7 +124,6 @@ class ChannelCategoriesRetrievalTestCare(TestCase):
         self.assertEqual(path, expected)
 
 
-@unittest.skip('temporarily skip command tests')
 class ImportCategoriesTest(TestCase):
     def test_non_existing_file(self):
         out = StringIO()

@@ -35,21 +35,15 @@ class Command(BaseCommand):
             return
 
         # get channel or insert new if it doesnt exist
-        if Channel.objects.filter(name=options['channel']).exists():
-            channel = Channel.objects.get(name=options['channel'])
-            # delete all existing categories from channel
-            channel.categories.delete()
-            # create new categories root
-            channel.categories = CategoryTree.objects.create(name=options['channel'])
-            channel.save()
-        else:
-            channel = Channel.objects.create(
-                name=options['channel'],
-                categories=CategoryTree.objects.create(name=options['channel'])
-            )
+        channel, _ = Channel.objects.get_or_create(name=options['channel'])
+        # delete all existing categories from channel
+        channel.categories.delete()
+        # create new categories root
+        channel.categories = CategoryTree.objects.create(name=options['channel'] + '_root')
+        channel.save()
 
         for category in categories:
-            channel.categories.add_category(category)
+            channel.add_category(category)
 
         ok_str = 'Channel {} updated with {} categories from file: {}'
         ok_msg = self.style.SUCCESS(ok_str.format(options['channel'],
