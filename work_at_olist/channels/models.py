@@ -31,11 +31,11 @@ class CategoryTree(MPTTModel):
     def create(cls, name, parent=None):
         return cls.objects.create(name=name, parent=parent)
 
-    def get_path_to_root(self):
-        """get the path from the root to the category as a list"""
+    def get_full_path(self):
+        """get the path from the root to the category"""
         ancestors = self.get_ancestors(include_self=True)
         # start from 1 because 0 is the root of the tree
-        return [node.name for node in ancestors[1:]]
+        return '/'.join([node.name for node in ancestors[1:]])
 
 
 class Channel(models.Model):
@@ -77,7 +77,7 @@ class Channel(models.Model):
         tree_id = self.categories.tree_id
         try:
             category = CategoryTree.objects.get(tree_id=tree_id, name=name)
-            return category.get_path_to_root()
+            return category.get_full_path()
         except Category.DoesNotExist:
             raise
 
@@ -87,7 +87,7 @@ class Channel(models.Model):
         the result is a list of lists
         """
         all_categories = CategoryTree.objects.get(root_of=self).get_family()
-        return [category.get_path_to_root() for category in all_categories[1:]]
+        return [category.get_full_path() for category in all_categories[1:]]
 
 
 @receiver(pre_save, sender=Channel)
