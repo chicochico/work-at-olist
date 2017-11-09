@@ -9,6 +9,5 @@
 *.sqlite3
 tmp
 Session.vim
-prod.py
 *.ipynb
 .ipynb_checkpoints
