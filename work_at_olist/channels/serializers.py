@@ -29,3 +29,23 @@ class ListChannelSerializer(serializers.HyperlinkedModelSerializer):
         extra_kwargs = {
             'url': {'lookup_field': 'name'}
         }
+
+
+class CategorySerializer(serializers.Serializer):
+    url = serializers.HyperlinkedRelatedField(
+        source='pk',
+        view_name='category-detail',
+        many=False,
+        read_only=True,
+        lookup_field='pk',
+    )
+    name = serializers.CharField()
+    path = serializers.CharField()
+    channel = serializers.HyperlinkedRelatedField(
+        many=False,
+        read_only=True,
+        view_name='channel-detail',
+        lookup_field='name',
+    )
+
+

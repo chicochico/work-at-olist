@@ -39,7 +39,12 @@ class Channel(MPTTModel):
     def get_all_channels(cls):
         return cls.objects.filter(parent=None)
 
-    def get_full_path(self):
+    @property
+    def channel(self):
+        return self.get_root()
+
+    @property
+    def path(self):
         """get the path from the root to the category"""
         ancestors = self.get_ancestors(include_self=True)
         # start from 1 because 0 is the root of the tree
@@ -73,4 +78,4 @@ class Channel(MPTTModel):
         the result is a list of paths
         """
         all_categories = Channel.objects.filter(tree_id=self.tree_id)
-        return [category.get_full_path() for category in all_categories[1:]]
+        return [category.path for category in all_categories[1:]]

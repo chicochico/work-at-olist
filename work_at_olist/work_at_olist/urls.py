@@ -22,6 +22,8 @@ from channels import views
 
 router = routers.DefaultRouter()
 router.register(r'channels', views.ChannelViewSet, 'channel')
+router.register(r'categories', views.CategoryViewSet, 'category')
+router.register(r'search', views.SearchViewSet, 'search')
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),

@@ -103,12 +103,12 @@ class ChannelCategoriesRetrievalTestCare(TestCase):
 
     def test_get_specific_category_path(self):
         expected = 'Home & Garden/Household Appliances/Laundry Appliances'
-        path = self.channel.get_category('Laundry Appliances').get_full_path()
+        path = self.channel.get_category('Laundry Appliances').path
         self.assertEqual(path, expected)
 
     def test_get_root_category_path(self):
         expected = 'Home & Garden'
-        path = self.channel.get_category('Home & Garden').get_full_path()
+        path = self.channel.get_category('Home & Garden').path
         self.assertEqual(path, expected)
 
 
