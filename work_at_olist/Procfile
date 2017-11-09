@@ -1,0 +1,1 @@
+web: gunicorn --env DJANGO_SETTINGS_MODULE=work_at_olist.settings.prod work_at_olist.wsgi
