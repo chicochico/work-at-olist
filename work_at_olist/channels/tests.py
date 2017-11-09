@@ -5,7 +5,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.db.utils import IntegrityError
 from django.utils.six import StringIO
-from .models import CategoryTree, Channel
+from .models import Channel
 
 
 class ChannelCategoriesInsertionTestCase(TestCase):
@@ -16,18 +16,6 @@ class ChannelCategoriesInsertionTestCase(TestCase):
     def test_channel_is_inserted_to_db(self):
         self.assertTrue(Channel.objects.filter(name='FooChannel').exists())
 
-    def test_categories_root_is_created(self):
-        """check if the channel's categories relation is added automatically"""
-        self.assertIsInstance(self.channel.categories, CategoryTree)
-
-    def test_categories_root_naming(self):
-        """
-        when automatically creating a category root
-        for a channel, append '_root' to channel's name.
-        This helps when using admin pages, and shell.
-        """
-        self.assertTrue(self.channel.categories.name.endswith('_root'))
-
     def test_channel_name_must_be_unique(self):
         with self.assertRaises(IntegrityError):
             Channel.objects.create(name='FooChannel')
@@ -35,7 +23,7 @@ class ChannelCategoriesInsertionTestCase(TestCase):
     def test_add_single_category(self):
         category = ['Home & Garden']
         self.channel.add_category(category)
-        children_count = self.channel.categories.get_descendant_count()
+        children_count = self.channel.get_descendant_count()
         self.assertEqual(children_count, 1)
 
     def test_add_multilevel_categories(self):
@@ -46,7 +34,7 @@ class ChannelCategoriesInsertionTestCase(TestCase):
             'Dryers',
         ]
         self.channel.add_category(category)
-        children_count = self.channel.categories.get_descendant_count()
+        children_count = self.channel.get_descendant_count()
         self.assertEqual(children_count, len(category))
 
     def test_add_subcategory_to_existing_category(self):
@@ -64,15 +52,15 @@ class ChannelCategoriesInsertionTestCase(TestCase):
         for category in categories:
             self.channel.add_category(category)
 
-        children_count = len(self.channel.categories.get_family())
+        children_count = len(self.channel.get_family())
         self.assertEqual(children_count, 7)
 
     def test_no_duplicate_category_on_same_tree(self):
         with self.assertRaises(IntegrityError):
-            CategoryTree.objects.create(name='Home & Garden',
-                                    parent=self.channel.categories)
-            CategoryTree.objects.create(name='Home & Garden',
-                                    parent=self.channel.categories)
+            Channel.objects.create(name='Home & Garden',
+                                    parent=self.channel)
+            Channel.objects.create(name='Home & Garden',
+                                    parent=self.channel)
 
 
 class ChannelCategoriesRetrievalTestCare(TestCase):
@@ -102,25 +90,25 @@ class ChannelCategoriesRetrievalTestCare(TestCase):
         category ordered by name
         """
         expected = [
-            ['Home & Garden'],
-            ['Home & Garden', 'Household Appliances'],
-            ['Home & Garden', 'Household Appliances', 'Laundry Appliances'],
-            ['Home & Garden', 'Household Appliances', 'Laundry Appliances', 'Dryers'],
-            ['Home & Garden', 'Kitchen & Dining'],
-            ['Home & Garden', 'Kitchen & Dining', 'Kitchen Tools & Utensils'],
-            ['Home & Garden', 'Kitchen & Dining', 'Kitchen Tools & Utensils', 'Food Graters & Zesters']
+            'Home & Garden',
+            'Home & Garden/Household Appliances',
+            'Home & Garden/Household Appliances/Laundry Appliances',
+            'Home & Garden/Household Appliances/Laundry Appliances/Dryers',
+            'Home & Garden/Kitchen & Dining',
+            'Home & Garden/Kitchen & Dining/Kitchen Tools & Utensils',
+            'Home & Garden/Kitchen & Dining/Kitchen Tools & Utensils/Food Graters & Zesters',
         ]
         paths = self.channel.get_all_categories()
         self.assertEqual(paths, expected)
 
     def test_get_specific_category_path(self):
-        expected = ['Home & Garden', 'Household Appliances', 'Laundry Appliances']
-        path = self.channel.get_category('Laundry Appliances')
+        expected = 'Home & Garden/Household Appliances/Laundry Appliances'
+        path = self.channel.get_category('Laundry Appliances').path
         self.assertEqual(path, expected)
 
     def test_get_root_category_path(self):
-        expected = ['Home & Garden']
-        path = self.channel.get_category('Home & Garden')
+        expected = 'Home & Garden'
+        path = self.channel.get_category('Home & Garden').path
         self.assertEqual(path, expected)
 
 
@@ -152,24 +140,17 @@ class ImportCategoriesTest(TestCase):
         file = 'test_data/test_data_sample_empty_lines.csv'
         call_command('importcategories', 'foo', file)
         expected = [
-            ['Business & Industrial'],
-            ['Business & Industrial', 'Advertising & Marketing'],
-            ['Business & Industrial', 'Advertising & Marketing', 'Trade Show Displays'],
-            ['Home & Garden'],
-            ['Home & Garden', 'Smoking Accessories'],
-            ['Home & Garden', 'Smoking Accessories', 'Ashtrays'],
-            ['Sporting Goods'],
-            ['Sporting Goods', 'Outdoor Recreation'],
-            ['Sporting Goods', 'Outdoor Recreation', 'Boating & Water Sports'],
-            ['Sporting Goods',
-             'Outdoor Recreation',
-             'Boating & Water Sports',
-             'Boating & Rafting'],
-            ['Sporting Goods',
-             'Outdoor Recreation',
-             'Boating & Water Sports',
-             'Boating & Rafting',
-             'Boating Gloves']
+            'Business & Industrial',
+            'Business & Industrial/Advertising & Marketing',
+            'Business & Industrial/Advertising & Marketing/Trade Show Displays',
+            'Home & Garden',
+            'Home & Garden/Smoking Accessories',
+            'Home & Garden/Smoking Accessories/Ashtrays',
+            'Sporting Goods',
+            'Sporting Goods/Outdoor Recreation',
+            'Sporting Goods/Outdoor Recreation/Boating & Water Sports',
+            'Sporting Goods/Outdoor Recreation/Boating & Water Sports/Boating & Rafting',
+            'Sporting Goods/Outdoor Recreation/Boating & Water Sports/Boating & Rafting/Boating Gloves',
         ]
         channel = Channel.objects.get(name='foo')
         self.assertEqual(channel.get_all_categories(), expected)
@@ -178,90 +159,44 @@ class ImportCategoriesTest(TestCase):
         file = 'test_data/test_data_sample_0.csv'
         call_command('importcategories', 'foo', file)
         expected = [
-            ['Business & Industrial'],
-            ['Business & Industrial', 'Advertising & Marketing'],
-            ['Business & Industrial', 'Advertising & Marketing', 'Trade Show Displays'],
-            ['Electronics'],
-            ['Electronics', 'Print, Copy, Scan & Fax'],
-            ['Electronics',
-             'Print, Copy, Scan & Fax',
-             'Printer, Copier & Fax Machine Accessories'],
-            ['Electronics',
-             'Print, Copy, Scan & Fax',
-             'Printer, Copier & Fax Machine Accessories',
-             'Printer Consumables'],
-            ['Electronics',
-             'Print, Copy, Scan & Fax',
-             'Printer, Copier & Fax Machine Accessories',
-             'Printer Consumables',
-             'Printer Drums & Drum Kits'],
-            ['Health & Beauty'],
-            ['Health & Beauty', 'Personal Care'],
-            ['Health & Beauty', 'Personal Care', 'Cosmetics'],
-            ['Health & Beauty', 'Personal Care', 'Cosmetics', 'Makeup'],
-            ['Health & Beauty', 'Personal Care', 'Cosmetics', 'Makeup', 'Face Makeup'],
-            ['Health & Beauty',
-             'Personal Care',
-             'Cosmetics',
-             'Makeup',
-             'Face Makeup',
-             'Highlighters & Luminizers'],
-            ['Home & Garden'],
-            ['Home & Garden', 'Kitchen & Dining'],
-            ['Home & Garden', 'Kitchen & Dining', 'Kitchen Appliances'],
-            ['Home & Garden',
-             'Kitchen & Dining',
-             'Kitchen Appliances',
-             'Frozen Drink Makers'],
-            ['Home & Garden', 'Kitchen & Dining', 'Kitchen Tools & Utensils'],
-            ['Home & Garden', 'Kitchen & Dining', 'Kitchen Tools & Utensils', 'Mashers'],
-            ['Home & Garden', 'Kitchen & Dining', 'Tableware'],
-            ['Home & Garden', 'Kitchen & Dining', 'Tableware', 'Flatware'],
-            ['Home & Garden',
-             'Kitchen & Dining',
-             'Tableware',
-             'Flatware',
-             'Chopstick Accessories'],
-            ['Home & Garden', 'Smoking Accessories'],
-            ['Home & Garden', 'Smoking Accessories', 'Ashtrays'],
-            ['Sporting Goods'],
-            ['Sporting Goods', 'Outdoor Recreation'],
-            ['Sporting Goods', 'Outdoor Recreation', 'Boating & Water Sports'],
-            ['Sporting Goods',
-             'Outdoor Recreation',
-             'Boating & Water Sports',
-             'Boating & Rafting'],
-            ['Sporting Goods',
-             'Outdoor Recreation',
-             'Boating & Water Sports',
-             'Boating & Rafting',
-             'Boating Gloves'],
-            ['Vehicles & Parts'],
-            ['Vehicles & Parts', 'Vehicle Parts & Accessories'],
-            ['Vehicles & Parts',
-             'Vehicle Parts & Accessories',
-             'Vehicle Maintenance, Care & Decor'],
-            ['Vehicles & Parts',
-             'Vehicle Parts & Accessories',
-             'Vehicle Maintenance, Care & Decor',
-             'Vehicle Decor'],
-            ['Vehicles & Parts',
-             'Vehicle Parts & Accessories',
-             'Vehicle Maintenance, Care & Decor',
-             'Vehicle Decor',
-             'Vehicle Hitch Covers'],
-            ['Vehicles & Parts',
-             'Vehicle Parts & Accessories',
-             'Vehicle Safety & Security'],
-            ['Vehicles & Parts',
-             'Vehicle Parts & Accessories',
-             'Vehicle Safety & Security',
-             'Vehicle Alarms & Locks'],
-            ['Vehicles & Parts',
-             'Vehicle Parts & Accessories',
-             'Vehicle Safety & Security',
-             'Vehicle Alarms & Locks',
-             'Vehicle Door Locks & Parts']]
-
+            'Business & Industrial',
+            'Business & Industrial/Advertising & Marketing',
+            'Business & Industrial/Advertising & Marketing/Trade Show Displays',
+            'Electronics',
+            'Electronics/Print, Copy, Scan & Fax',
+            'Electronics/Print, Copy, Scan & Fax/Printer, Copier & Fax Machine Accessories',
+            'Electronics/Print, Copy, Scan & Fax/Printer, Copier & Fax Machine Accessories/Printer Consumables',
+            'Electronics/Print, Copy, Scan & Fax/Printer, Copier & Fax Machine Accessories/Printer Consumables/Printer Drums & Drum Kits',
+            'Health & Beauty',
+            'Health & Beauty/Personal Care',
+            'Health & Beauty/Personal Care/Cosmetics',
+            'Health & Beauty/Personal Care/Cosmetics/Makeup',
+            'Health & Beauty/Personal Care/Cosmetics/Makeup/Face Makeup',
+            'Health & Beauty/Personal Care/Cosmetics/Makeup/Face Makeup/Highlighters & Luminizers',
+            'Home & Garden',
+            'Home & Garden/Kitchen & Dining',
+            'Home & Garden/Kitchen & Dining/Kitchen Appliances',
+            'Home & Garden/Kitchen & Dining/Kitchen Appliances/Frozen Drink Makers',
+            'Home & Garden/Kitchen & Dining/Kitchen Tools & Utensils',
+            'Home & Garden/Kitchen & Dining/Kitchen Tools & Utensils/Mashers',
+            'Home & Garden/Kitchen & Dining/Tableware',
+            'Home & Garden/Kitchen & Dining/Tableware/Flatware',
+            'Home & Garden/Kitchen & Dining/Tableware/Flatware/Chopstick Accessories',
+            'Home & Garden/Smoking Accessories',
+            'Home & Garden/Smoking Accessories/Ashtrays',
+            'Sporting Goods',
+            'Sporting Goods/Outdoor Recreation',
+            'Sporting Goods/Outdoor Recreation/Boating & Water Sports',
+            'Sporting Goods/Outdoor Recreation/Boating & Water Sports/Boating & Rafting',
+            'Sporting Goods/Outdoor Recreation/Boating & Water Sports/Boating & Rafting/Boating Gloves',
+            'Vehicles & Parts',
+            'Vehicles & Parts/Vehicle Parts & Accessories',
+            'Vehicles & Parts/Vehicle Parts & Accessories/Vehicle Maintenance, Care & Decor',
+            'Vehicles & Parts/Vehicle Parts & Accessories/Vehicle Maintenance, Care & Decor/Vehicle Decor',
+            'Vehicles & Parts/Vehicle Parts & Accessories/Vehicle Maintenance, Care & Decor/Vehicle Decor/Vehicle Hitch Covers',
+            'Vehicles & Parts/Vehicle Parts & Accessories/Vehicle Safety & Security',
+            'Vehicles & Parts/Vehicle Parts & Accessories/Vehicle Safety & Security/Vehicle Alarms & Locks',
+            'Vehicles & Parts/Vehicle Parts & Accessories/Vehicle Safety & Security/Vehicle Alarms & Locks/Vehicle Door Locks & Parts'
+         ]
         channel = Channel.objects.get(name='foo')
         self.assertEqual(channel.get_all_categories(), expected)

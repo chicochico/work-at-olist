@@ -1,11 +1,9 @@
 from django.db import models
-from django.db.models.signals import post_save, pre_save
-from django.dispatch import receiver
+from django.db import IntegrityError
 from mptt.models import MPTTModel, TreeForeignKey
-from mptt.fields import TreeOneToOneField
 
 
-class CategoryTree(MPTTModel):
+class Channel(MPTTModel):
     name = models.CharField(
         max_length=255,
     )
@@ -17,12 +15,18 @@ class CategoryTree(MPTTModel):
         db_index=True
     )
 
+    def save(self, *args, **kwargs):
+        """Override save to check it channel name is unique"""
+        if Channel.objects.filter(name=self.name, parent=None):
+            raise IntegrityError('Channel name already exists.')
+        else:
+            super(Channel, self).save(*args, **kwargs)
+
     class MPTTMeta:
         order_insertion_by = ['name']
 
     class Meta:
         unique_together = (('name', 'tree_id'),)
-        verbose_name_plural = 'categories'
 
     def __str__(self):
         return self.name
@@ -31,68 +35,47 @@ class CategoryTree(MPTTModel):
     def create(cls, name, parent=None):
         return cls.objects.create(name=name, parent=parent)
 
-    def get_path_to_root(self):
-        """get the path from the root to the category as a list"""
+    @classmethod
+    def get_all_channels(cls):
+        return cls.objects.filter(parent=None)
+
+    @property
+    def channel(self):
+        return self.get_root()
+
+    @property
+    def path(self):
+        """get the path from the root to the category"""
         ancestors = self.get_ancestors(include_self=True)
         # start from 1 because 0 is the root of the tree
-        return [node.name for node in ancestors[1:]]
-
-
-class Channel(models.Model):
-    categories = TreeOneToOneField(
-        CategoryTree,
-        on_delete=models.CASCADE,
-        related_name='root_of',
-    )
-    name = models.CharField(
-        max_length=255,
-        null=False,
-        blank=False,
-        unique=True,
-    )
-
-    def __str__(self):
-        return self.name
-
-    @classmethod
-    def create(cls, name):
-        return cls.objects.create(name=name)
+        return '/'.join([node.name for node in ancestors[1:]])
 
     def add_category(self, path):
         """path is a list containing the path to the category"""
         head, *tail = path
-        parent, _ = CategoryTree.objects.get_or_create(name=head,
-                                                       parent=self.categories)
+        parent, _ = Channel.objects.get_or_create(name=head,
+                                                       parent=self)
         for element in tail:
-            parent, _ = CategoryTree.objects.get_or_create(name=element,
+            parent, _ = Channel.objects.get_or_create(name=element,
                                                            parent=parent)
 
     def get_categories_count(self):
-        tree_id = self.categories.tree_id
-        count = CategoryTree.objects.filter(tree_id=tree_id).count()
+        tree_id = self.tree_id
+        count = Channel.objects.filter(tree_id=tree_id).count()
         return count - 1  # not including the root
 
     def get_category(self, name):
-        """get a category path by its name"""
-        tree_id = self.categories.tree_id
+        """get a category name"""
         try:
-            category = CategoryTree.objects.get(tree_id=tree_id, name=name)
-            return category.get_path_to_root()
+            category = Channel.objects.get(tree_id=self.tree_id, name=name)
+            return category
         except Category.DoesNotExist:
             raise
 
     def get_all_categories(self):
         """
         get all the categories of this channel
-        the result is a list of lists
+        the result is a list of paths
         """
-        all_categories = CategoryTree.objects.get(root_of=self).get_family()
-        return [category.get_path_to_root() for category in all_categories[1:]]
-
-
-@receiver(pre_save, sender=Channel)
-def create_root_categories(sender, instance, **kwargs):
-    """add categories root if it doesnt exist"""
-    if not hasattr(instance, 'categories'):
-        cat = CategoryTree.create(instance.name + '_root')
-        instance.categories = cat
+        all_categories = Channel.objects.filter(tree_id=self.tree_id)
+        return [category.path for category in all_categories[1:]]
