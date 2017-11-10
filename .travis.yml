@@ -1,10 +1,15 @@
 language: python
 python:
-  - 3.6
-
+- 3.6
 install:
-  - pip install -r requirements.txt
-
+- pip install -r requirements.txt
 script:
-  - export DJANGO_SETTINGS_MODULE=work_at_olist.settings.dev
-  - ./manage.py test
+- export DJANGO_SETTINGS_MODULE=work_at_olist.settings.dev
+- "./manage.py test"
+deploy:
+  provider: heroku
+  api_key:
+    secure: e/CAb1VMPVmVHXEX6CCnPKujTbKR/7lxDz0kT2UvN9WRGkKdqn9PVnzHAoq1lCh25850eOTFzNEnzBhKkmwDzKr0GlsPUxsFW9AuArbr2xUCE3hM6Wlc1NJOL/TauJNI5rg8HVnWLodpE2E4JZzJqV6iIcFWFwt16h+iXxupRdZgOASBhxTs5m8+uLH6lS/7Lb5NiYcvzMHPNqY7Tm6+2d/PVGQ397RSb+rlO+L9B6fdNYCV5b+2Ffy9QEOLgwzYiHD5gkAnUjN9zwHAzmKZyW/OG5mdkT057oWG64KGcWg5KHOC1hvVA61pVRol7GntoIP6CJnvsLkiSNpa2nrsgW/jTVzX+U2QslMJJT8qBI8dEyjj6G/s4qSz17KP5Llz+2cLSbqDGWRw9pOy1YqT7LHXwV4aBaVFCDeszXgHkyWq75EH9T9VxLaQsJBahDL/zc0zUhucQme0ar1U964ZuNMMUukr47hw3JexR5py4sO1bmOnkBvtQ+w0h+iKk31u3J1q1yxFijhnYED8UZqYIu1WijhByaCg6wysxDkii3OSMWtO0FHmZNhyTQmpbUUtfqQYsf50LACKAlwqenCJXOlXIL3bt0zqpo3xB6dc7p861T2at8vL0OKgC2OBnkyHF6H7gDeCNqDIIj2KWlJh/+Lyetp+YiYjJTuyM9LshCs=
+  app: young-garden-16956
+  on:
+    repo: chicochico/work-at-olist
