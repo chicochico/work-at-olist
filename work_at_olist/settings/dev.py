@@ -3,6 +3,8 @@ from .base import *
 
 DEBUG = True
 
+ALLOWED_HOSTS += '*'
+
 SECRET_KEY = 'jwztgcq*!q55q^l8hfd5%rc0bz+!llp+c#u!z2hry_-m+mt5sv'
 
 DATABASES = {
