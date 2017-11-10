@@ -13,3 +13,4 @@ deploy:
   app: young-garden-16956
   on:
     repo: chicochico/work-at-olist
+    branch: master
