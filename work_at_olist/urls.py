@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
+from django.views.generic.base import RedirectView
 from rest_framework import routers
 from rest_framework.documentation import include_docs_urls
 from channels import views
@@ -28,6 +29,7 @@ router.register(r'search', views.SearchViewSet, 'search')
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/v1/', include(router.urls)),
-    url(r'^api/v1/docs/', include_docs_urls(title='Sellers Channels API')),
+    url(r'^api/v1/docs/', include_docs_urls(title='Sellers Channels API'), name='api-docs'),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^$', RedirectView.as_view(url='/api/v1/docs', permanent=False), name='redirect-docs'),
 ]
