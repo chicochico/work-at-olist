@@ -6,4 +6,5 @@ install:
   - pip install -r requirements.txt
 
 script:
+  - export DJANGO_SETTINGS_MODULE=work_at_olist.settings.dev
   - ./manage.py test
