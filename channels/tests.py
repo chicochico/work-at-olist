@@ -124,20 +124,20 @@ class ImportCategoriesTest(TestCase):
 
     def test_succesfully_add_channel_categories(self):
         out = StringIO()
-        file = '../test_data/test_data_sample_0.csv'
+        file = 'test_data/test_data_sample_0.csv'
         call_command('importcategories', 'foo', file, stdout=out)
         expected = 'Channel foo updated with 10 categories from file: {}'.format(file)
         self.assertIn(expected, out.getvalue())
 
     def test_custom_separator_in_file(self):
         out = StringIO()
-        file = '../test_data/test_data_sample_commas.csv'
+        file = 'test_data/test_data_sample_commas.csv'
         call_command('importcategories', '--sep=","', 'foo', file, stdout=out)
         expected = 'Channel foo updated with 10 categories from file: {}'.format(file)
         self.assertIn(expected, out.getvalue())
 
     def test_skip_empty_lines(self):
-        file = '../test_data/test_data_sample_empty_lines.csv'
+        file = 'test_data/test_data_sample_empty_lines.csv'
         call_command('importcategories', 'foo', file)
         expected = [
             'Business & Industrial',
@@ -156,7 +156,7 @@ class ImportCategoriesTest(TestCase):
         self.assertEqual(channel.get_all_categories(), expected)
 
     def test_data_is_actually_added(self):
-        file = '../test_data/test_data_sample_0.csv'
+        file = 'test_data/test_data_sample_0.csv'
         call_command('importcategories', 'foo', file)
         expected = [
             'Business & Industrial',
