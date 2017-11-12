@@ -41,7 +41,7 @@ class CategoryViewSet(viewsets.ViewSet):
 class SearchViewSet(viewsets.ViewSet):
     """Privide search functionality for channels and categories."""
 
-    @list_route(methods=['get'], url_path='category/(?P<category_name>.+)')
+    @list_route(methods=['get'], url_path='category/(?P<category_name>.+)', url_name='category')
     def search_category(self, request, category_name=None):
         """Search for categories that contains the search query."""
         queryset = Channel.objects.exclude(parent=None)
@@ -49,7 +49,7 @@ class SearchViewSet(viewsets.ViewSet):
         serializer = CategorySerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
-    @list_route(methods=['get'], url_path='channel/(?P<channel_name>.+)')
+    @list_route(methods=['get'], url_path='channel/(?P<channel_name>.+)', url_name='channel')
     def search_channel(self, request, channel_name=None):
         """Search for channels that contains the search query."""
         queryset = Channel.objects.filter(parent=None)
