@@ -51,13 +51,18 @@ class Channel(MPTTModel):
         return '/'.join([node.name for node in ancestors[1:]])
 
     def add_category(self, path):
-        """path is a list containing the path to the category"""
+        """
+        path is a list containing the path to the category
+        retunrs the category added
+        """
         head, *tail = path
         parent, _ = Channel.objects.get_or_create(name=head,
                                                        parent=self)
         for element in tail:
             parent, _ = Channel.objects.get_or_create(name=element,
-                                                           parent=parent)
+                                                      parent=parent)
+        # return the added category
+        return parent
 
     def get_categories_count(self):
         tree_id = self.tree_id

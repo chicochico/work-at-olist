@@ -25,7 +25,7 @@ class ChannelAPITestCase(APITestCase):
         Channel.create('bar').add_category(categories[0])
         baz = Channel.create('baz')
         baz.add_category(categories[0])
-        category_pk = baz.add_category(categories[1]).pk
+        self.category_pk = baz.add_category(categories[1]).pk
 
     def test_get_channels_list(self):
         """
@@ -69,8 +69,16 @@ class ChannelAPITestCase(APITestCase):
         """
         url = reverse('category-detail', args=[self.category_pk])
         response = self.client.get(url)
+        category_url = response.wsgi_request.build_absolute_uri()
+        channel_category = response.wsgi_request.build_absolute_uri(reverse('channel-detail', args=['baz']))
+        expected = {
+            'url': category_url,
+            'name': 'Dryers',
+            'path': 'Home & Garden/Household Appliances/Laundry Appliances/Dryers',
+            'channel': channel_category,
+        }
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data, expected)
 
     def test_search_channels(self):
         """
