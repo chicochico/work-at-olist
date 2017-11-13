@@ -7,6 +7,9 @@ class Command(BaseCommand):
     help = 'Add categories from comma separated file to channel.'
 
     def add_arguments(self, parser):
+        """
+        Add the arguments this command accepts
+        """
         parser.add_argument(
             'channel',
             type=str,
@@ -25,6 +28,9 @@ class Command(BaseCommand):
             type=str)
 
     def handle(self, *args, **options):
+        """
+        Do the work
+        """
         try:
             categories = self.parse_file(options['file'], options['separator'])
         except FileNotFoundError:
@@ -52,10 +58,10 @@ class Command(BaseCommand):
 
 
     def parse_file(self, file, separator):
-        '''
-        parse a file and returns a list of lists, each list
+        """
+        Parse a file and returns a list of lists, each list
         is the full path to a category.
-        '''
+        """
         try:
             data = open(file, 'r').read().splitlines()
             return [s.split(separator) for s in data if s != '']

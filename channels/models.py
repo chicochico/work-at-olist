@@ -16,7 +16,9 @@ class Channel(MPTTModel):
     )
 
     def save(self, *args, **kwargs):
-        """Override save to check it channel name is unique"""
+        """
+        Override save to check it channel name is unique
+        """
         if Channel.objects.filter(name=self.name, parent=None):
             raise IntegrityError('Channel name already exists.')
         else:
@@ -33,27 +35,40 @@ class Channel(MPTTModel):
 
     @classmethod
     def create(cls, name, parent=None):
+        """
+        Create a channel with name
+        """
         return cls.objects.create(name=name, parent=parent)
 
     @classmethod
     def get_all_channels(cls):
+        """
+        Get all the channels as a queryset
+        """
         return cls.objects.filter(parent=None)
 
     @property
     def channel(self):
+        """
+        Get the channel this category belongs to
+        """
         return self.get_root()
 
     @property
     def path(self):
-        """get the path from the root to the category"""
+        """
+        Get the path from the root to the category
+        returns a string
+        """
         ancestors = self.get_ancestors(include_self=True)
         # start from 1 because 0 is the root of the tree
         return '/'.join([node.name for node in ancestors[1:]])
 
     def add_category(self, path):
         """
+        Add a new category to the channel
         path is a list containing the path to the category
-        retunrs the category added
+        returns the category added
         """
         head, *tail = path
         parent, _ = Channel.objects.get_or_create(name=head,
@@ -65,12 +80,18 @@ class Channel(MPTTModel):
         return parent
 
     def get_categories_count(self):
+        """
+        Get the number of categories in this channel
+        """
         tree_id = self.tree_id
         count = Channel.objects.filter(tree_id=tree_id).count()
         return count - 1  # not including the root
 
     def get_category(self, name):
-        """get a category name"""
+        """
+        Get the category by the name in this channel
+        return a category or raise does not exist error
+        """
         try:
             category = Channel.objects.get(tree_id=self.tree_id, name=name)
             return category
@@ -79,8 +100,8 @@ class Channel(MPTTModel):
 
     def get_all_categories(self):
         """
-        get all the categories of this channel
-        the result is a list of paths
+        Get all the categories of this channel
+        the result is a list of strings (paths)
         """
         all_categories = Channel.objects.filter(tree_id=self.tree_id)
         return [category.path for category in all_categories[1:]]

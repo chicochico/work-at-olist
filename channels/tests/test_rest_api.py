@@ -63,6 +63,17 @@ class ChannelAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, expected)
 
+    def test_channel_detail_does_not_exist(self):
+        """
+        If the channel does not exist return 404 code
+        and reason of error
+        """
+        url = reverse('channel-detail', args=['this does not exist'])
+        response = self.client.get(url)
+        expected = {'detail': 'Not found.'}
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, expected)
+
     def test_get_category_detail(self):
         """
         Get a category details
@@ -80,6 +91,16 @@ class ChannelAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, expected)
 
+    def test_category_does_not_exist(self):
+        """
+        If the category does not exist return 404 code and reason of error
+        """
+        url = reverse('category-detail', args=['1231234'])
+        response = self.client.get(url)
+        expected = {'detail': 'Not found.'}
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, expected)
+
     def test_search_channels(self):
         """
         Search all channels that contain the keyword in the name
@@ -95,6 +116,16 @@ class ChannelAPITestCase(APITestCase):
         ]
         self.assertEqual(response.data, expected)
 
+    def test_empty_channel_search_result(self):
+        """
+        When nothing is found return 404 code and reason
+        """
+        url = reverse('search-channel', args=['this channel does not exist'])
+        response = self.client.get(url)
+        expected = {'detail': 'Not found.'}
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, expected)
+
     def test_search_categories(self):
         """
         Search all categories that contain the keyword
@@ -103,6 +134,16 @@ class ChannelAPITestCase(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 4)
+
+    def test_empty_category_search_result(self):
+        """
+        When nothing is found return 404 code and reason
+        """
+        url = reverse('search-category', args=['this category does not exist'])
+        response = self.client.get(url)
+        expected = {'detail': 'Not found.'}
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, expected)
 
     def test_root_redirect_to_api_docs(self):
         """
