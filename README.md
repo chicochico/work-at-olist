@@ -6,6 +6,7 @@
 
 This is my solution for the chalenge proposed by Olist.
 
+
 ## API
 The api provide the following endpoints:
 
@@ -15,8 +16,19 @@ The api provide the following endpoints:
 - Search channels names with keyword
 - Search categories with keyword, lists all categories with keyword
 
-Checkout the API documentation and running demo [here](https://young-garden-16956.herokuapp.com/api/v1/docs/).
+Checkout the API documentation and running demo at [heroku](https://young-garden-16956.herokuapp.com/api/v1/docs/).
 
+### Interact with the API
+```
+# Install the command line client
+$ pip install coreapi-cli
+
+# Load the schema document
+$ coreapi get https://young-garden-16956.herokuapp.com/api/v1/docs/
+
+# Interact with the API endpoint
+$ coreapi action channels list
+```
 
 ## Solution
 
@@ -69,7 +81,8 @@ optional arguments:
 
 Semicolon (;) is used as default separator, as the categories can have commas (,) themselves.
 
-### Running the app
+
+## Running the app
 
 1. Clone this repo
 2. Create a virtualenv
@@ -78,7 +91,7 @@ Semicolon (;) is used as default separator, as the categories can have commas (,
 5. run ./manage.py runserver
 6. access localhost:8000 in your browser
 
-#### Note
+### Note
 
 If deploying with production settings you have to set the following environment variables
 
@@ -92,16 +105,18 @@ If deploying with production settings you have to set the following environment 
 
 If creating your own setting file, you can add the settings in the file instead of setting them into environment variables. Here they are set up this way to avoid putting sensitive information on version control.
 
+
 ## Tools
 
-- Django web framework.
-- Django-REST framework to build endpoints.
-- Django-MPTT MPTT implementation for Django.
-- Django-extensions provides many usefull manage commands.
-- Jupyter notebook used to process testing data, and make interactions with the django app.
-- Neovim text editor.
-- iTerm terminal emulator for MacOS.
-- DevDocs APIs and programming languages documentation search with instant results and fuzzy search.
-- Heroku to host the demo app.
-- Travis continuous integration, run tests and if tests passes deploy app to Heroku (only the master branch).
+- [Django](https://www.djangoproject.com/) web framework.
+- [Django-REST](http://www.django-rest-framework.org/) framework to build endpoints.
+- [Django-MPTT](https://django-mptt.readthedocs.io/en/latest/index.html#) MPTT implementation for Django.
+- [Django-extensions](https://django-extensions.readthedocs.io/en/latest/) provides many usefull manage commands.
+- [Jupyter](http://jupyter.org/) notebook used to process testing data, and make interactions with the django app.
+- [Neovim](https://neovim.io/) text editor.
+- [iTerm](https://iterm2.com/) terminal emulator for MacOS.
+- [DevDocs](http://devdocs.io/) APIs and programming languages documentation search with instant results, offline support and fuzzy search.
+- [Heroku](https://www.heroku.com/) to host the demo app.
+- [Travis](https://travis-ci.org/) continuous integration, run tests and if tests passes deploy app to Heroku (only the master branch).
+- MacOS
 
