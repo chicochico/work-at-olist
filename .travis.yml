@@ -5,6 +5,7 @@ install:
 - pip install -r requirements.txt
 script:
 - export DJANGO_SETTINGS_MODULE=work_at_olist.settings.dev
+- "./manage.py collectstatic"
 - "./manage.py test"
 deploy:
   provider: heroku
@@ -13,3 +14,4 @@ deploy:
   app: young-garden-16956
   on:
     repo: chicochico/work-at-olist
+    branch: master

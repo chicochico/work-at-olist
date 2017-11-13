@@ -11,3 +11,4 @@ tmp
 Session.vim
 *.ipynb
 .ipynb_checkpoints
+static/
