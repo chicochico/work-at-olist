@@ -59,8 +59,25 @@ class ChannelCategoriesInsertionTestCase(TestCase):
             Channel.objects.create(name='Home & Garden',
                                     parent=self.channel)
 
+    def test_strip_white_spaces(self):
+        category = [
+            '  Home & Garden  ',
+            '        Household Appliances',
+            'Laundry Appliances ',
+            '  Dryers '
+        ]
+        expected = [
+            'Home & Garden',
+            'Home & Garden/Household Appliances',
+            'Home & Garden/Household Appliances/Laundry Appliances',
+            'Home & Garden/Household Appliances/Laundry Appliances/Dryers',
+        ]
+        self.channel.add_category(category)
+        paths = self.channel.get_all_categories()
+        self.assertEqual(paths, expected)
 
-class ChannelCategoriesRetrievalTestCare(TestCase):
+
+class ChannelCategoriesRetrievalTestCase(TestCase):
     def setUp(self):
         categories = [
             ['Home & Garden',

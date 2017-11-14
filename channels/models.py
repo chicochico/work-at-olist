@@ -22,6 +22,7 @@ class Channel(MPTTModel):
         if Channel.objects.filter(name=self.name, parent=None):
             raise IntegrityError('Channel name already exists.')
         else:
+            self.name = self.name.strip()  # remove trailing white spaces
             super(Channel, self).save(*args, **kwargs)
 
     class MPTTMeta:
@@ -71,10 +72,10 @@ class Channel(MPTTModel):
         returns the category added
         """
         head, *tail = path
-        parent, _ = Channel.objects.get_or_create(name=head,
-                                                       parent=self)
+        parent, _ = Channel.objects.get_or_create(name=head.strip(),
+                                                  parent=self)
         for element in tail:
-            parent, _ = Channel.objects.get_or_create(name=element,
+            parent, _ = Channel.objects.get_or_create(name=element.strip(),
                                                       parent=parent)
         # return the added category
         return parent
