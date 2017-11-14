@@ -29,7 +29,7 @@ class Channel(MPTTModel):
         order_insertion_by = ['name']
 
     class Meta:
-        unique_together = (('name', 'tree_id'),)
+        unique_together = (('name', 'parent'),)
 
     def __str__(self):
         return self.name

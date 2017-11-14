@@ -67,5 +67,3 @@ class Command(BaseCommand):
             return [s.split(separator) for s in data if s != '']
         except FileNotFoundError:
             raise
-
-
