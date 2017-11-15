@@ -21,11 +21,12 @@ class ChannelAPITestCase(APITestCase):
              'Laundry Appliances',
              'Dryers'],
         ]
-        Channel.create('foo').add_category(categories[1])
         Channel.create('bar').add_category(categories[0])
         baz = Channel.create('baz')
         baz.add_category(categories[0])
         self.category_pk = baz.add_category(categories[1]).pk
+        self.channel = Channel.create('foo')
+        self.channel.add_category(categories[1])
 
     def test_get_channels_list(self):
         """
@@ -86,6 +87,9 @@ class ChannelAPITestCase(APITestCase):
             'url': category_url,
             'name': 'Dryers',
             'path': 'Home & Garden/Household Appliances/Laundry Appliances/Dryers',
+            'subcategories': [
+
+            ],
             'channel': channel_category,
         }
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -151,3 +155,25 @@ class ChannelAPITestCase(APITestCase):
         """
         response = self.client.get('/', follow=True)
         self.assertRedirects(response, '/api/v1/docs/')
+
+    def test_get_category_detail_with_subcategories(self):
+        """
+        Check for correctness in subcategories of category
+        """
+        category = self.channel.get_category('Household Appliances')
+        url = reverse('category-detail', args=[category.pk])
+        response = self.client.get(url)
+        category_url = response.wsgi_request.build_absolute_uri()
+        channel_category = response.wsgi_request.build_absolute_uri(reverse('channel-detail', args=['foo']))
+        expected = {
+            'url': category_url,
+            'name': 'Household Appliances',
+            'path': 'Home & Garden/Household Appliances',
+            'subcategories': [
+                'Home & Garden/Household Appliances/Laundry Appliances',
+                'Home & Garden/Household Appliances/Laundry Appliances/Dryers'
+            ],
+            'channel': channel_category,
+        }
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, expected)
