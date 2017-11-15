@@ -41,11 +41,15 @@ class CategorySerializer(serializers.Serializer):
     )
     name = serializers.CharField()
     path = serializers.CharField()
+    subcategories = serializers.SerializerMethodField()
     channel = serializers.HyperlinkedRelatedField(
         many=False,
         read_only=True,
         view_name='channel-detail',
         lookup_field='name',
     )
+
+    def get_subcategories(self, obj):
+        return obj.get_all_categories()
 
 

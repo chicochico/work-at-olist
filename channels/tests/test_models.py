@@ -112,7 +112,7 @@ class ChannelCategoriesRetrievalTestCase(TestCase):
             'Home & Garden/Kitchen & Dining/Kitchen Tools & Utensils',
             'Home & Garden/Kitchen & Dining/Kitchen Tools & Utensils/Food Graters & Zesters',
         ]
-        paths = self.channel.get_all_categories()
+        paths = Channel.objects.get(name='foo').get_all_categories()
         self.assertEqual(paths, expected)
 
     def test_get_specific_category_path(self):

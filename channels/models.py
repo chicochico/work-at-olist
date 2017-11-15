@@ -96,7 +96,7 @@ class Channel(MPTTModel):
         try:
             category = Channel.objects.get(tree_id=self.tree_id, name=name)
             return category
-        except Category.DoesNotExist:
+        except Channel.DoesNotExist:
             raise
 
     def get_all_categories(self):
@@ -104,5 +104,6 @@ class Channel(MPTTModel):
         Get all the categories of this channel
         the result is a list of strings (paths)
         """
-        all_categories = Channel.objects.filter(tree_id=self.tree_id)
+        all_categories = self.get_descendants(include_self=True)
         return [category.path for category in all_categories[1:]]
+
