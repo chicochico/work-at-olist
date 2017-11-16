@@ -48,7 +48,7 @@ class ImportCategoriesTest(TestCase):
             'Sporting Goods/Outdoor Recreation/Boating & Water Sports/Boating & Rafting/Boating Gloves',
         ]
         channel = Channel.objects.get(name='foo')
-        self.assertEqual(channel.get_all_categories(), expected)
+        self.assertEqual(channel.get_all_categories_paths(), expected)
 
     def test_data_is_actually_added(self):
         file = 'test_data/test_data_sample_0.csv'
@@ -94,4 +94,4 @@ class ImportCategoriesTest(TestCase):
             'Vehicles & Parts/Vehicle Parts & Accessories/Vehicle Safety & Security/Vehicle Alarms & Locks/Vehicle Door Locks & Parts'
          ]
         channel = Channel.objects.get(name='foo')
-        self.assertEqual(channel.get_all_categories(), expected)
+        self.assertEqual(channel.get_all_categories_paths(), expected)

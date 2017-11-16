@@ -73,7 +73,7 @@ class ChannelCategoriesInsertionTestCase(TestCase):
             'Home & Garden/Household Appliances/Laundry Appliances/Dryers',
         ]
         self.channel.add_category(category)
-        paths = self.channel.get_all_categories()
+        paths = self.channel.get_all_categories_paths()
         self.assertEqual(paths, expected)
 
 
@@ -112,7 +112,7 @@ class ChannelCategoriesRetrievalTestCase(TestCase):
             'Home & Garden/Kitchen & Dining/Kitchen Tools & Utensils',
             'Home & Garden/Kitchen & Dining/Kitchen Tools & Utensils/Food Graters & Zesters',
         ]
-        paths = Channel.objects.get(name='foo').get_all_categories()
+        paths = Channel.objects.get(name='foo').get_all_categories_paths()
         self.assertEqual(paths, expected)
 
     def test_get_specific_category_path(self):
