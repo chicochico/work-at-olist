@@ -1,12 +1,12 @@
 from django.db import models
 from django.db import IntegrityError
+from django.dispatch import receiver
 from mptt.models import MPTTModel, TreeForeignKey
 
 
 class Channel(MPTTModel):
-    name = models.CharField(
-        max_length=255,
-    )
+    name = models.CharField(max_length=255)
+    path = models.TextField(null=False)
     parent = TreeForeignKey(
         'self',
         null=True,
@@ -19,11 +19,13 @@ class Channel(MPTTModel):
         """
         Override save to check it channel name is unique
         """
-        if Channel.objects.filter(name=self.name, parent=None):
-            raise IntegrityError('Channel name already exists.')
-        else:
-            self.name = self.name.strip()  # remove trailing white spaces
-            super(Channel, self).save(*args, **kwargs)
+        if self.pk is None:
+            if Channel.objects.filter(name=self.name, parent=None).exists():
+                raise IntegrityError('Channel name already exists.')
+
+        self.name = self.name.strip()  # remove trailing white spaces
+
+        super(Channel, self).save(*args, **kwargs)
 
     class MPTTMeta:
         order_insertion_by = ['name']
@@ -55,29 +57,24 @@ class Channel(MPTTModel):
         """
         return self.get_root()
 
-    @property
-    def path(self):
-        """
-        Get the path from the root to the category
-        returns a string
-        """
-        ancestors = self.get_ancestors(include_self=True)
-        # start from 1 because 0 is the root of the tree
-        return '/'.join([node.name for node in ancestors[1:]])
-
     def add_category(self, path):
         """
         Add a new category to the channel
-        path is a list containing the path to the category
-        returns the category added
+        path: list containing the path to the category
+        returns: the category added
         """
         head, *tail = path
         parent, _ = Channel.objects.get_or_create(name=head.strip(),
                                                   parent=self)
+        path = parent.name
+        parent.path = path
+        parent.save()
         for element in tail:
             parent, _ = Channel.objects.get_or_create(name=element.strip(),
                                                       parent=parent)
-        # return the added category
+            path = '/'.join([path, parent.name])
+            parent.path = path
+            parent.save()
         return parent
 
     def get_categories_count(self):
@@ -106,4 +103,3 @@ class Channel(MPTTModel):
         """
         all_categories = self.get_descendants(include_self=True)
         return [category.path for category in all_categories[1:]]
-
