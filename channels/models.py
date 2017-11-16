@@ -22,15 +22,20 @@ class Channel(MPTTModel):
         if self.pk is None:
             if Channel.objects.filter(name=self.name, parent=None).exists():
                 raise IntegrityError('Channel name already exists.')
-
         self.name = self.name.strip()  # remove trailing white spaces
-
         super(Channel, self).save(*args, **kwargs)
 
     class MPTTMeta:
+        """
+        Insertion in the tree is ordered by name
+        """
         order_insertion_by = ['name']
 
     class Meta:
+        """
+        Unique constraint to prevent duplicate category
+        in the same tree level
+        """
         unique_together = (('name', 'parent'),)
 
     def __str__(self):
@@ -88,7 +93,8 @@ class Channel(MPTTModel):
     def get_category(self, name):
         """
         Get the category by the name in this channel
-        return a category or raise does not exist error
+        name: the lookup name (exact match)
+        return: a category or raise does not exist error
         """
         try:
             category = Channel.objects.get(tree_id=self.tree_id, name=name)
