@@ -1,6 +1,5 @@
 from django.db import models
 from django.db import IntegrityError
-from django.dispatch import receiver
 from mptt.models import MPTTModel, TreeForeignKey
 
 

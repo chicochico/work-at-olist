@@ -1,4 +1,4 @@
-from .models import Channel
+from channels.models import Channel
 from rest_framework import serializers
 
 
@@ -51,5 +51,3 @@ class CategorySerializer(serializers.Serializer):
 
     def get_subcategories(self, obj):
         return obj.get_all_categories_paths()
-
-

@@ -1,5 +1,3 @@
-import unittest
-
 from django.test import TestCase
 from django.db.utils import IntegrityError
 from channels.models import Channel

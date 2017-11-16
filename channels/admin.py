@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Channel
+from channels.models import Channel
 from mptt.admin import MPTTModelAdmin
 
 
