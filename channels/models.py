@@ -99,7 +99,7 @@ class Channel(MPTTModel):
         except Channel.DoesNotExist:
             raise
 
-    def get_all_categories(self):
+    def get_all_categories_paths(self):
         """
         Get all the categories of this channel
         the result is a list of strings (paths)

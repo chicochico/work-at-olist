@@ -15,7 +15,7 @@ class ChannelSerializer(serializers.HyperlinkedModelSerializer):
         }
 
     def get_categories(self, obj):
-        return obj.get_all_categories()
+        return obj.get_all_categories_paths()
 
     def get_categories_count(self, obj):
         return obj.get_categories_count()
@@ -50,6 +50,6 @@ class CategorySerializer(serializers.Serializer):
     )
 
     def get_subcategories(self, obj):
-        return obj.get_all_categories()
+        return obj.get_all_categories_paths()
 
 
