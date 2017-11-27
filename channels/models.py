@@ -51,7 +51,9 @@ class Channel(MPTTModel):
     @classmethod
     def create(cls, name, parent=None):
         """
-        Create a channel with name
+        Create a channel with custom name
+        name: the name of the channel
+        returns: the created channel instance
         """
         return cls.objects.create(name=name, parent=parent)
 
@@ -59,6 +61,7 @@ class Channel(MPTTModel):
     def get_all_channels(cls):
         """
         Get all the channels as a queryset
+        returns: queryset
         """
         return cls.objects.filter(parent=None)
 
@@ -66,12 +69,14 @@ class Channel(MPTTModel):
     def channel(self):
         """
         Get the channel this category belongs to
+        returns: instance of channel
         """
         return self.get_root()
 
     def is_channel(self):
         """
         Check if is instance of a channel
+        returns: boolean
         """
         return self.parent == None
 
@@ -98,6 +103,8 @@ class Channel(MPTTModel):
     def get_categories_count(self):
         """
         Get the number of categories in this channel
+        returns: count of categories that belongs to this
+        channel
         """
         tree_id = self.tree_id
         count = Channel.objects.filter(tree_id=tree_id).count()
@@ -119,6 +126,8 @@ class Channel(MPTTModel):
         """
         Get all the categories of this channel
         the result is a list of strings (paths)
+        returns: all paths of categories that belongs
+        to this channel
         """
         all_categories = self.get_descendants(include_self=True)
         return [category.path for category in all_categories[1:]]
