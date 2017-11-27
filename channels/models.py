@@ -1,5 +1,6 @@
 from django.db import models
 from django.db import IntegrityError
+from django.core.exceptions import ValidationError
 from mptt.models import MPTTModel, TreeForeignKey
 
 
@@ -14,16 +15,6 @@ class Channel(MPTTModel):
         db_index=True
     )
 
-    def save(self, *args, **kwargs):
-        """
-        Override save to check it channel name is unique
-        """
-        if self.pk is None:
-            if Channel.objects.filter(name=self.name, parent=None).exists():
-                raise IntegrityError('Channel name already exists.')
-        self.name = self.name.strip()  # remove trailing white spaces
-        super(Channel, self).save(*args, **kwargs)
-
     class MPTTMeta:
         """
         Insertion in the tree is ordered by name
@@ -36,6 +27,23 @@ class Channel(MPTTModel):
         in the same tree level
         """
         unique_together = (('name', 'parent'),)
+
+    def save(self, *args, **kwargs):
+        """
+        Override to call clean for manually created objects
+        """
+        self.clean()
+        super(Channel, self).save(*args, **kwargs)
+
+    def clean(self):
+        """
+        Strip leading and trailing spaces and
+        check for channel name uniqueness
+        """
+        self.name = self.name.strip()
+        if self.pk is None and self.is_channel():
+            if Channel.objects.filter(name=self.name, parent=None).exists():
+                raise ValidationError('Channel name already exists.')
 
     def __str__(self):
         return self.name
@@ -61,6 +69,12 @@ class Channel(MPTTModel):
         """
         return self.get_root()
 
+    def is_channel(self):
+        """
+        Check if is instance of a channel
+        """
+        return self.parent == None
+
     def add_category(self, path):
         """
         Add a new category to the channel
@@ -68,13 +82,13 @@ class Channel(MPTTModel):
         returns: the category added
         """
         head, *tail = path
-        parent, _ = Channel.objects.get_or_create(name=head.strip(),
+        parent, _ = Channel.objects.get_or_create(name=head,
                                                   parent=self)
         path = parent.name
         parent.path = path
         parent.save()
         for element in tail:
-            parent, _ = Channel.objects.get_or_create(name=element.strip(),
+            parent, _ = Channel.objects.get_or_create(name=element,
                                                       parent=parent)
             path = '/'.join([path, parent.name])
             parent.path = path

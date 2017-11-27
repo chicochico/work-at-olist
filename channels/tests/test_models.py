@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.db.utils import IntegrityError
+from django.core.exceptions import ValidationError
 from channels.models import Channel
 
 
@@ -11,8 +12,11 @@ class ChannelCategoriesInsertionTestCase(TestCase):
     def test_channel_is_inserted_to_db(self):
         self.assertTrue(Channel.objects.filter(name='FooChannel').exists())
 
+    def test_is_channel_method(self):
+        self.assertTrue(self.channel.is_channel())
+
     def test_channel_name_must_be_unique(self):
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises(ValidationError):
             Channel.objects.create(name='FooChannel')
 
     def test_add_single_category(self):
@@ -50,7 +54,7 @@ class ChannelCategoriesInsertionTestCase(TestCase):
         children_count = len(self.channel.get_family())
         self.assertEqual(children_count, 7)
 
-    def test_no_duplicate_category_on_same_tree(self):
+    def test_no_duplicate_category_on_same_tree_level(self):
         with self.assertRaises(IntegrityError):
             Channel.objects.create(name='Home & Garden',
                                     parent=self.channel)
