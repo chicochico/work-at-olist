@@ -1,12 +1,11 @@
-from django.shortcuts import render
 from django.shortcuts import get_object_or_404, get_list_or_404
 
 from rest_framework import viewsets
 from rest_framework.response import Response
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import list_route
 
-from .models import Channel
-from .serializers import ListChannelSerializer, ChannelSerializer, CategorySerializer
+from channels.models import Channel
+from channels.serializers import ListChannelSerializer, ChannelSerializer, CategorySerializer
 
 
 
