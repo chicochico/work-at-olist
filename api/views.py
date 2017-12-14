@@ -5,8 +5,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import list_route
 
 from channels.models import Channel
-from channels.serializers import ListChannelSerializer, ChannelSerializer, CategorySerializer
-
+from api.serializers import ListChannelSerializer, ChannelSerializer, CategorySerializer
 
 
 class ChannelViewSet(viewsets.ViewSet):

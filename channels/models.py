@@ -1,5 +1,4 @@
 from django.db import models
-from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 from mptt.models import MPTTModel, TreeForeignKey
 

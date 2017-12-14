@@ -7,4 +7,5 @@ class ChannelAdmin(MPTTModelAdmin):
     search_fields = ['name']
     readonly_fields = ('path',)
 
+
 admin.site.register(Channel, ChannelAdmin)
