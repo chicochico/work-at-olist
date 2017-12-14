@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'mptt',
     'rest_framework',
+    'rest_framework_swagger',
     'channels',
     'api',
 ]
