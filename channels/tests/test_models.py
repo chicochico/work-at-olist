@@ -57,9 +57,9 @@ class ChannelCategoriesInsertionTestCase(TestCase):
     def test_no_duplicate_category_on_same_tree_level(self):
         with self.assertRaises(IntegrityError):
             Channel.objects.create(name='Home & Garden',
-                                    parent=self.channel)
+                                   parent=self.channel)
             Channel.objects.create(name='Home & Garden',
-                                    parent=self.channel)
+                                   parent=self.channel)
 
     def test_strip_white_spaces(self):
         category = [

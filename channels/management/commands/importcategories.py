@@ -1,7 +1,6 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from channels.models import Channel
 
-import random
 
 class Command(BaseCommand):
     help = 'Add categories from comma separated file to channel.'
@@ -55,7 +54,6 @@ class Command(BaseCommand):
                                                   len(categories),
                                                   options['file']))
         self.stdout.write(ok_msg)
-
 
     def parse_file(self, file, separator):
         """

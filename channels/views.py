@@ -8,7 +8,6 @@ from channels.models import Channel
 from channels.serializers import ListChannelSerializer, ChannelSerializer, CategorySerializer
 
 
-
 class ChannelViewSet(viewsets.ViewSet):
     """
     Endpoints to access channels.
