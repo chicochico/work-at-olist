@@ -90,7 +90,9 @@ class Category(Node):
         if empty
         """
         if self.parent is None:
-            raise ValidationError({'parent': 'Parent cannot be empty.'})
+            raise ValidationError(
+                {'parent': 'Parent cannot be empty.'}
+            )
 
         self.name = self.name.strip()
         self.path = self.parent.path + '/{}'.format(self.name)
@@ -116,7 +118,9 @@ class Channel(Node):
         and validate empty parent
         """
         if self.parent:
-            raise ValidationError({'parent': 'A channel contains no parent.'})
+            raise ValidationError(
+                {'parent': 'A channel contains no parent.'}
+            )
 
         self.name = self.name.strip()
         self.path = '/{}'.format(self.name)
@@ -128,7 +132,9 @@ class Channel(Node):
         super(Channel, self).validate_unique(*args, **kwargs)
         if not self.pk:
             if self.__class__.objects.filter(name=self.name).exists():
-                raise ValidationError({'name': 'Channel with this name already exists.'})
+                raise ValidationError(
+                    {'name': 'Channel with this name already exists.'}
+                )
 
     def get_category(self, name):
         """

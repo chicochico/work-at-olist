@@ -40,4 +40,3 @@ class ImportCategoriesTest(TestCase):
         call_command('importcategories', 'FooChannel', file)
         channel = Channel.objects.get(name='FooChannel')
         self.assertEqual(channel.subcategories_count, 11)
-
