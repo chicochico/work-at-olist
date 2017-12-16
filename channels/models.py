@@ -3,6 +3,17 @@ from django.core.exceptions import ValidationError
 from mptt.models import MPTTModel, TreeForeignKey
 
 
+class CategoryManager(models.Manager):
+    """
+    Categories manager
+    """
+    def get_queryset(self):
+        """
+        A category is a tree node with a parent
+        """
+        return super(CategoryManager, self).get_queryset().exclude(parent=None)
+
+
 class ChannelManager(models.Manager):
     """
     Class for managing channels
@@ -23,17 +34,6 @@ class ChannelManager(models.Manager):
         channel.full_clean()
         channel.save()
         return channel
-
-
-class CategoryManager(models.Manager):
-    """
-    Categories manager
-    """
-    def get_queryset(self):
-        """
-        A category is a tree node with a parent
-        """
-        return super(CategoryManager, self).get_queryset().exclude(parent=None)
 
 
 class Node(MPTTModel):
@@ -91,6 +91,16 @@ class Category(Node):
         returns: instance of channel
         """
         return self.get_root()
+
+    def get_all_categories_paths(self):
+        """
+        Get all the categories of this channel
+        the result is a list of strings (paths)
+        returns: all paths of categories that belongs
+        to this channel
+        """
+        all_categories = self.get_descendants(include_self=True)
+        return [category.path for category in all_categories[1:]]
 
 
 class Channel(Node):

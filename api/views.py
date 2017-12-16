@@ -4,7 +4,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import list_route
 
-from channels.models import Channel
+from channels.models import Channel, Category
 from api.serializers import ListChannelSerializer, ChannelSerializer, CategorySerializer
 
 
@@ -18,7 +18,7 @@ class ChannelViewSet(viewsets.ViewSet):
         """
         List all avaliable channels and the url to access them.
         """
-        queryset = Channel.objects.filter(parent=None)
+        queryset = Channel.objects.all()
         serializer = ListChannelSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -26,7 +26,7 @@ class ChannelViewSet(viewsets.ViewSet):
         """
         Lookup a specific channel with its name.
         """
-        queryset = Channel.objects.filter(parent=None)
+        queryset = Channel.objects.all()
         channel = get_object_or_404(queryset, name=name)
         serializer = ChannelSerializer(channel, context={'request': request})
         return Response(serializer.data)
@@ -41,7 +41,7 @@ class CategoryViewSet(viewsets.ViewSet):
         """
         Get a instance of category.
         """
-        queryset = Channel.objects.exclude(parent=None)
+        queryset = Category.objects.all()
         channel = get_object_or_404(queryset, pk=pk)
         serializer = CategorySerializer(channel, context={'request': request})
         return Response(serializer.data)
@@ -57,7 +57,7 @@ class SearchViewSet(viewsets.ViewSet):
         """
         Search for categories that contains the search query.
         """
-        queryset = Channel.objects.exclude(parent=None)
+        queryset = Category.objects.all()
         queryset = get_list_or_404(queryset, name__icontains=category_name)
         serializer = CategorySerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
@@ -67,7 +67,7 @@ class SearchViewSet(viewsets.ViewSet):
         """
         Search for channels that contains the search query.
         """
-        queryset = Channel.objects.filter(parent=None)
+        queryset = Channel.objects.all()
         queryset = get_list_or_404(queryset, name__icontains=channel_name)
         serializer = ListChannelSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)

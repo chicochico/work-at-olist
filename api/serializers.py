@@ -4,7 +4,6 @@ from rest_framework import serializers
 
 class ChannelSerializer(serializers.HyperlinkedModelSerializer):
     categories = serializers.SerializerMethodField()
-    categories_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Channel
@@ -16,9 +15,6 @@ class ChannelSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_categories(self, obj):
         return obj.get_all_categories_paths()
-
-    def get_categories_count(self, obj):
-        return obj.get_categories_count()
 
 
 class ListChannelSerializer(serializers.HyperlinkedModelSerializer):

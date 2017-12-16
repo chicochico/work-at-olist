@@ -19,11 +19,11 @@ class ChannelAPITestCase(APITestCase):
              'Laundry Appliances',
              'Dryers'],
         ]
-        Channel.create('bar').add_category(categories[0])
-        baz = Channel.create('baz')
+        Channel.objects.create(name='bar').add_category(categories[0])
+        baz = Channel.objects.create(name='baz')
         baz.add_category(categories[0])
         self.category_pk = baz.add_category(categories[1]).pk
-        self.channel = Channel.create('foo')
+        self.channel = Channel.objects.create(name='foo')
         self.channel.add_category(categories[1])
 
     def test_get_channels_list(self):
@@ -34,9 +34,9 @@ class ChannelAPITestCase(APITestCase):
         response = self.client.get(url)
         base_url = response.wsgi_request.build_absolute_uri()
         expected = [
-            {'url': base_url + 'bar/', 'name': 'bar'},
-            {'url': base_url + 'baz/', 'name': 'baz'},
             {'url': base_url + 'foo/', 'name': 'foo'},
+            {'url': base_url + 'baz/', 'name': 'baz'},
+            {'url': base_url + 'bar/', 'name': 'bar'},
         ]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, expected)
@@ -113,8 +113,8 @@ class ChannelAPITestCase(APITestCase):
         bar_url = response.wsgi_request.build_absolute_uri(reverse('channel-detail', args=['bar']))
         baz_url = response.wsgi_request.build_absolute_uri(reverse('channel-detail', args=['baz']))
         expected = [
-            {'url': bar_url, 'name': 'bar'},
             {'url': baz_url, 'name': 'baz'},
+            {'url': bar_url, 'name': 'bar'},
         ]
         self.assertEqual(response.data, expected)
 
