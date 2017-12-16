@@ -71,7 +71,7 @@ class ChannelCategoriesInsertionTestCase(TestCase):
             '/FooChannel/Home & Garden/Household Appliances/Laundry Appliances/Dryers',
         ]
         self.channel.add_category(category)
-        channel_categories = [c.path for c in self.channel.categories]
+        channel_categories = [c.path for c in self.channel.subcategories]
         self.assertEqual(channel_categories, expected)
 
 
@@ -93,7 +93,7 @@ class ChannelCategoriesRetrievalTestCase(TestCase):
         self.channel.refresh_from_db()
 
     def test_get_categories_count(self):
-        count = self.channel.categories_count
+        count = self.channel.subcategories_count
         self.assertEqual(count, 7)
 
     def test_get_all_categories(self):
@@ -101,7 +101,7 @@ class ChannelCategoriesRetrievalTestCase(TestCase):
         all categories should return a queryset
         """
         expected = set(Category.objects.filter(tree_id=self.channel.tree_id))
-        categories = set(self.channel.categories)
+        categories = set(self.channel.subcategories)
         self.assertEqual(categories, expected)
 
     def test_get_specific_category_path(self):

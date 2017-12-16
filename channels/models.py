@@ -59,6 +59,23 @@ class Node(MPTTModel):
         self.full_clean()
         super(Node, self).save(*args, **kwargs)
 
+    @property
+    def subcategories(self):
+        """
+        Get all the categories of this channel
+        returns: queryset of categories that belong to this channel
+        """
+        return self.get_descendants(include_self=False)
+
+    @property
+    def subcategories_count(self):
+        """
+        Get the number of categories in this channel
+        returns: count of categories that belongs to this
+        channel
+        """
+        return Category.objects.filter(tree_id=self.tree_id).count()
+
 
 class Category(Node):
     objects = CategoryManager()
@@ -123,23 +140,6 @@ class Channel(Node):
         if not self.pk:
             if self.__class__.objects.filter(name=self.name).exists():
                 raise ValidationError({'name': 'Channel with this name already exists.'})
-
-    @property
-    def categories_count(self):
-        """
-        Get the number of categories in this channel
-        returns: count of categories that belongs to this
-        channel
-        """
-        return Category.objects.filter(tree_id=self.tree_id).count()
-
-    @property
-    def categories(self):
-        """
-        Get all the categories of this channel
-        returns: queryset of categories that belong to this channel
-        """
-        return self.get_descendants(include_self=False)
 
     def get_category(self, name):
         """

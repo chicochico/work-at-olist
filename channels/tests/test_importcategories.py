@@ -33,11 +33,11 @@ class ImportCategoriesTest(TestCase):
         file = 'test_data/test_data_sample_0.csv'
         call_command('importcategories', 'FooChannel', file)
         channel = Channel.objects.get(name='FooChannel')
-        self.assertEqual(channel.categories_count, 38)
+        self.assertEqual(channel.subcategories_count, 38)
 
     def test_skip_empty_lines(self):
         file = 'test_data/test_data_sample_empty_lines.csv'
         call_command('importcategories', 'FooChannel', file)
         channel = Channel.objects.get(name='FooChannel')
-        self.assertEqual(channel.categories_count, 11)
+        self.assertEqual(channel.subcategories_count, 11)
 
