@@ -3,9 +3,42 @@ from django.core.exceptions import ValidationError
 from mptt.models import MPTTModel, TreeForeignKey
 
 
-class Channel(MPTTModel):
+class ChannelManager(models.Manager):
+    """
+    Class for managing channels
+    """
+    def get_queryset(self):
+        """
+        A channel is a tree node without a parent
+        """
+        return super(ChannelManager, self).get_queryset().filter(parent=None)
+
+    def create(self, name):
+        """
+        Create a channel with custom name
+        name: the name of the channel
+        returns: the created channel instance
+        """
+        channel = self.model(name=name, parent=None)
+        channel.full_clean()
+        channel.save()
+        return channel
+
+
+class CategoryManager(models.Manager):
+    """
+    Categories manager
+    """
+    def get_queryset(self):
+        """
+        A category is a tree node with a parent
+        """
+        return super(CategoryManager, self).get_queryset().exclude(parent=None)
+
+
+class Node(MPTTModel):
     name = models.CharField(max_length=255)
-    path = models.TextField(null=False)
+    path = models.TextField(null=True, blank=True)
     parent = TreeForeignKey(
         'self',
         null=True,
@@ -32,37 +65,24 @@ class Channel(MPTTModel):
         Override to call clean for manually created objects
         """
         self.clean()
-        super(Channel, self).save(*args, **kwargs)
-
-    def clean(self):
-        """
-        Strip leading and trailing spaces and
-        check for channel name uniqueness
-        """
-        self.name = self.name.strip()
-        if self.pk is None and self.is_channel():
-            if Channel.objects.filter(name=self.name, parent=None).exists():
-                raise ValidationError('Channel name already exists.')
+        super(Node, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.name
 
-    @classmethod
-    def create(cls, name, parent=None):
+    def clean(self):
         """
-        Create a channel with custom name
-        name: the name of the channel
-        returns: the created channel instance
+        Strip leading and trailing spaces
         """
-        return cls.objects.create(name=name, parent=parent)
+        self.name = self.name.strip()
 
-    @classmethod
-    def get_all_channels(cls):
-        """
-        Get all the channels as a queryset
-        returns: queryset
-        """
-        return cls.objects.filter(parent=None)
+
+class Category(Node):
+    objects = CategoryManager()
+
+    class Meta:
+        proxy = True
+        verbose_name_plural = 'Categories'
 
     @property
     def channel(self):
@@ -72,41 +92,28 @@ class Channel(MPTTModel):
         """
         return self.get_root()
 
-    def is_channel(self):
-        """
-        Check if is instance of a channel
-        returns: boolean
-        """
-        return self.parent == None
 
-    def add_category(self, path):
-        """
-        Add a new category to the channel
-        path: list containing the path to the category
-        returns: the category added
-        """
-        head, *tail = path
-        parent, _ = Channel.objects.get_or_create(name=head,
-                                                  parent=self)
-        path = parent.name
-        parent.path = path
-        parent.save()
-        for element in tail:
-            parent, _ = Channel.objects.get_or_create(name=element,
-                                                      parent=parent)
-            path = '/'.join([path, parent.name])
-            parent.path = path
-            parent.save()
-        return parent
+class Channel(Node):
+    objects = ChannelManager()
 
-    def get_categories_count(self):
+    class Meta:
+        proxy = True
+
+    def validate_unique(self, *args, **kwargs):
+        super(Channel, self).validate_unique(*args, **kwargs)
+        if not self.pk:
+            if self.__class__.objects.filter(name=self.name).exists():
+                raise ValidationError({'name': 'Channel with this name already exists.'})
+
+    @property
+    def categories_count(self):
         """
         Get the number of categories in this channel
         returns: count of categories that belongs to this
         channel
         """
         tree_id = self.tree_id
-        count = Channel.objects.filter(tree_id=tree_id).count()
+        count = Node.objects.filter(tree_id=tree_id).count()
         return count - 1  # not including the root
 
     def get_category(self, name):
@@ -116,7 +123,7 @@ class Channel(MPTTModel):
         return: a category or raise does not exist error
         """
         try:
-            category = Channel.objects.get(tree_id=self.tree_id, name=name)
+            category = Category.objects.get(tree_id=self.tree_id, name=name)
             return category
         except Channel.DoesNotExist:
             raise
@@ -130,3 +137,25 @@ class Channel(MPTTModel):
         """
         all_categories = self.get_descendants(include_self=True)
         return [category.path for category in all_categories[1:]]
+
+    def add_category(self, path):
+        """
+        Add a new category to the channel
+        path: list containing the path to the category
+        returns: the category added
+        """
+        head, *tail = path
+        parent, _ = Category.objects.get_or_create(name=head,
+                                                   parent=self)
+        path = parent.name
+        parent.path = path
+        parent.save()
+        for element in tail:
+            parent, _ = Category.objects.get_or_create(name=element,
+                                                       parent=parent)
+            path = '/'.join([path, parent.name])
+            parent.path = path
+            parent.save()
+        return parent
+
+

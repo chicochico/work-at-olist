@@ -1,19 +1,16 @@
 from django.test import TestCase
 from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError
-from channels.models import Channel
+from channels.models import Channel, Category
 
 
 class ChannelCategoriesInsertionTestCase(TestCase):
     def setUp(self):
         """setup the channel used by unit tests"""
-        self.channel = Channel.create('FooChannel')
+        self.channel = Channel.objects.create('FooChannel')
 
     def test_channel_is_inserted_to_db(self):
         self.assertTrue(Channel.objects.filter(name='FooChannel').exists())
-
-    def test_is_channel_method(self):
-        self.assertTrue(self.channel.is_channel())
 
     def test_channel_name_must_be_unique(self):
         with self.assertRaises(ValidationError):
@@ -56,9 +53,9 @@ class ChannelCategoriesInsertionTestCase(TestCase):
 
     def test_no_duplicate_category_on_same_tree_level(self):
         with self.assertRaises(IntegrityError):
-            Channel.objects.create(name='Home & Garden',
+            Category.objects.create(name='Home & Garden',
                                    parent=self.channel)
-            Channel.objects.create(name='Home & Garden',
+            Category.objects.create(name='Home & Garden',
                                    parent=self.channel)
 
     def test_strip_white_spaces(self):
@@ -91,13 +88,13 @@ class ChannelCategoriesRetrievalTestCase(TestCase):
              'Laundry Appliances',
              'Dryers'],
         ]
-        self.channel = Channel.create('foo')
+        self.channel = Channel.objects.create('foo')
 
         for category in categories:
             self.channel.add_category(category)
 
     def test_get_categories_count(self):
-        count = self.channel.get_categories_count()
+        count = self.channel.categories_count
         self.assertEqual(count, 7)
 
     def test_get_all_categories_full_paths(self):
