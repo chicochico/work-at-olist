@@ -131,9 +131,15 @@ class Channel(Node):
         returns: count of categories that belongs to this
         channel
         """
-        tree_id = self.tree_id
-        count = Node.objects.filter(tree_id=tree_id).count()
-        return count - 1  # not including the root
+        return Category.objects.filter(tree_id=self.tree_id).count()
+
+    @property
+    def categories(self):
+        """
+        Get all the categories of this channel
+        returns: queryset of categories that belong to this channel
+        """
+        return self.get_descendants(include_self=False)
 
     def get_category(self, name):
         """
@@ -146,16 +152,6 @@ class Channel(Node):
             return category
         except Channel.DoesNotExist:
             raise
-
-    def get_all_categories_paths(self):
-        """
-        Get all the categories of this channel
-        the result is a list of strings (paths)
-        returns: all paths of categories that belongs
-        to this channel
-        """
-        all_categories = self.get_descendants(include_self=True)
-        return [category.path for category in all_categories[1:]]
 
     def add_category(self, path):
         """

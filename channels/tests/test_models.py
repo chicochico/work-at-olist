@@ -1,5 +1,4 @@
 from django.test import TestCase
-from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError
 from channels.models import Channel, Category
 
@@ -51,7 +50,7 @@ class ChannelCategoriesInsertionTestCase(TestCase):
         children_count = len(self.channel.get_family())
         self.assertEqual(children_count, 7)
 
-    def test_no_duplicate_category_on_same_tree_level(self):
+    def test_no_duplicate_category_on_same_level(self):
         with self.assertRaises(ValidationError):
             Category.objects.create(name='Home & Garden',
                                     parent=self.channel)
@@ -72,8 +71,8 @@ class ChannelCategoriesInsertionTestCase(TestCase):
             '/FooChannel/Home & Garden/Household Appliances/Laundry Appliances/Dryers',
         ]
         self.channel.add_category(category)
-        paths = self.channel.get_all_categories_paths()
-        self.assertEqual(paths, expected)
+        channel_categories = [c.path for c in self.channel.categories]
+        self.assertEqual(channel_categories, expected)
 
 
 class ChannelCategoriesRetrievalTestCase(TestCase):
@@ -89,30 +88,21 @@ class ChannelCategoriesRetrievalTestCase(TestCase):
              'Dryers'],
         ]
         self.channel = Channel.objects.create(name='FooChannel')
-
         for category in categories:
             self.channel.add_category(category)
+        self.channel.refresh_from_db()
 
     def test_get_categories_count(self):
         count = self.channel.categories_count
         self.assertEqual(count, 7)
 
-    def test_get_all_categories_full_paths(self):
+    def test_get_all_categories(self):
         """
-        all categories should return a list of paths to each
-        category ordered by name
+        all categories should return a queryset
         """
-        expected = [
-            '/FooChannel/Home & Garden',
-            '/FooChannel/Home & Garden/Household Appliances',
-            '/FooChannel/Home & Garden/Household Appliances/Laundry Appliances',
-            '/FooChannel/Home & Garden/Household Appliances/Laundry Appliances/Dryers',
-            '/FooChannel/Home & Garden/Kitchen & Dining',
-            '/FooChannel/Home & Garden/Kitchen & Dining/Kitchen Tools & Utensils',
-            '/FooChannel/Home & Garden/Kitchen & Dining/Kitchen Tools & Utensils/Food Graters & Zesters',
-        ]
-        paths = Channel.objects.get(name='FooChannel').get_all_categories_paths()
-        self.assertEqual(paths, expected)
+        expected = set(Category.objects.filter(tree_id=self.channel.tree_id))
+        categories = set(self.channel.categories)
+        self.assertEqual(categories, expected)
 
     def test_get_specific_category_path(self):
         expected = '/FooChannel/Home & Garden/Household Appliances/Laundry Appliances'
