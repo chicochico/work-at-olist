@@ -62,17 +62,16 @@ class Node(MPTTModel):
     @property
     def subcategories(self):
         """
-        Get all the categories of this channel
-        returns: queryset of categories that belong to this channel
+        Get all the subcategories of this node
+        returns: queryset of subcategories that belong to this node
         """
         return self.get_descendants(include_self=False)
 
     @property
     def subcategories_count(self):
         """
-        Get the number of categories in this channel
-        returns: count of categories that belongs to this
-        channel
+        Get the number of subcategories in this node
+        returns: count of subcategories that belongs to this node
         """
         return Category.objects.filter(tree_id=self.tree_id).count()
 
