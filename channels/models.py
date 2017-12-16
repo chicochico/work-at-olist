@@ -104,16 +104,6 @@ class Category(Node):
         """
         return self.get_root()
 
-    def get_all_categories_paths(self):
-        """
-        Get all the categories of this channel
-        the result is a list of strings (paths)
-        returns: all paths of categories that belongs
-        to this channel
-        """
-        all_categories = self.get_descendants(include_self=True)
-        return [category.path for category in all_categories[1:]]
-
 
 class Channel(Node):
     objects = ChannelManager()
