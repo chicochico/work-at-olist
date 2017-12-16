@@ -24,17 +24,6 @@ class ChannelManager(models.Manager):
         """
         return super(ChannelManager, self).get_queryset().filter(parent=None)
 
-    def create(self, name):
-        """
-        Create a channel with custom name
-        name: the name of the channel
-        returns: the created channel instance
-        """
-        channel = self.model(name=name, parent=None)
-        channel.full_clean()
-        channel.save()
-        return channel
-
 
 class Node(MPTTModel):
     name = models.CharField(max_length=255)
@@ -60,21 +49,15 @@ class Node(MPTTModel):
         """
         unique_together = (('name', 'parent'),)
 
+    def __str__(self):
+        return self.name
+
     def save(self, *args, **kwargs):
         """
         Override to call clean for manually created objects
         """
-        self.clean()
+        self.full_clean()
         super(Node, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return self.name
-
-    def clean(self):
-        """
-        Strip leading and trailing spaces
-        """
-        self.name = self.name.strip()
 
 
 class Category(Node):
@@ -83,6 +66,18 @@ class Category(Node):
     class Meta:
         proxy = True
         verbose_name_plural = 'Categories'
+
+    def clean(self):
+        """
+        Strip leading and trailing empty spaces
+        check if parent is present, and create path
+        if empty
+        """
+        if self.parent is None:
+            raise ValidationError({'parent': 'Parent cannot be empty.'})
+
+        self.name = self.name.strip()
+        self.path = self.parent.path + '/{}'.format(self.name)
 
     @property
     def channel(self):
@@ -109,7 +104,21 @@ class Channel(Node):
     class Meta:
         proxy = True
 
+    def clean(self):
+        """
+        Strip trailing and leading empty spaces
+        and validate empty parent
+        """
+        if self.parent:
+            raise ValidationError({'parent': 'A channel contains no parent.'})
+
+        self.name = self.name.strip()
+        self.path = '/{}'.format(self.name)
+
     def validate_unique(self, *args, **kwargs):
+        """
+        A channel name should be unique
+        """
         super(Channel, self).validate_unique(*args, **kwargs)
         if not self.pk:
             if self.__class__.objects.filter(name=self.name).exists():
@@ -167,5 +176,3 @@ class Channel(Node):
             parent.path = path
             parent.save()
         return parent
-
-

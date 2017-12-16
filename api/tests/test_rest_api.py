@@ -52,10 +52,10 @@ class ChannelAPITestCase(APITestCase):
             'url': channel_url,
             'name': 'foo',
             'categories': [
-                'Home & Garden',
-                'Home & Garden/Household Appliances',
-                'Home & Garden/Household Appliances/Laundry Appliances',
-                'Home & Garden/Household Appliances/Laundry Appliances/Dryers'
+                '/foo/Home & Garden',
+                '/foo/Home & Garden/Household Appliances',
+                '/foo/Home & Garden/Household Appliances/Laundry Appliances',
+                '/foo/Home & Garden/Household Appliances/Laundry Appliances/Dryers'
             ],
             'categories_count': 4,
         }
@@ -84,7 +84,7 @@ class ChannelAPITestCase(APITestCase):
         expected = {
             'url': category_url,
             'name': 'Dryers',
-            'path': 'Home & Garden/Household Appliances/Laundry Appliances/Dryers',
+            'path': '/baz/Home & Garden/Household Appliances/Laundry Appliances/Dryers',
             'subcategories': [
 
             ],
@@ -166,10 +166,10 @@ class ChannelAPITestCase(APITestCase):
         expected = {
             'url': category_url,
             'name': 'Household Appliances',
-            'path': 'Home & Garden/Household Appliances',
+            'path': '/foo/Home & Garden/Household Appliances',
             'subcategories': [
-                'Home & Garden/Household Appliances/Laundry Appliances',
-                'Home & Garden/Household Appliances/Laundry Appliances/Dryers'
+                '/foo/Home & Garden/Household Appliances/Laundry Appliances',
+                '/foo/Home & Garden/Household Appliances/Laundry Appliances/Dryers'
             ],
             'channel': channel_category,
         }

@@ -7,7 +7,7 @@ from channels.models import Channel, Category
 class ChannelCategoriesInsertionTestCase(TestCase):
     def setUp(self):
         """setup the channel used by unit tests"""
-        self.channel = Channel.objects.create('FooChannel')
+        self.channel = Channel.objects.create(name='FooChannel')
 
     def test_channel_is_inserted_to_db(self):
         self.assertTrue(Channel.objects.filter(name='FooChannel').exists())
@@ -52,11 +52,11 @@ class ChannelCategoriesInsertionTestCase(TestCase):
         self.assertEqual(children_count, 7)
 
     def test_no_duplicate_category_on_same_tree_level(self):
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises(ValidationError):
             Category.objects.create(name='Home & Garden',
-                                   parent=self.channel)
+                                    parent=self.channel)
             Category.objects.create(name='Home & Garden',
-                                   parent=self.channel)
+                                    parent=self.channel)
 
     def test_strip_white_spaces(self):
         category = [
@@ -66,10 +66,10 @@ class ChannelCategoriesInsertionTestCase(TestCase):
             '  Dryers '
         ]
         expected = [
-            'Home & Garden',
-            'Home & Garden/Household Appliances',
-            'Home & Garden/Household Appliances/Laundry Appliances',
-            'Home & Garden/Household Appliances/Laundry Appliances/Dryers',
+            '/FooChannel/Home & Garden',
+            '/FooChannel/Home & Garden/Household Appliances',
+            '/FooChannel/Home & Garden/Household Appliances/Laundry Appliances',
+            '/FooChannel/Home & Garden/Household Appliances/Laundry Appliances/Dryers',
         ]
         self.channel.add_category(category)
         paths = self.channel.get_all_categories_paths()
@@ -88,7 +88,7 @@ class ChannelCategoriesRetrievalTestCase(TestCase):
              'Laundry Appliances',
              'Dryers'],
         ]
-        self.channel = Channel.objects.create('foo')
+        self.channel = Channel.objects.create(name='FooChannel')
 
         for category in categories:
             self.channel.add_category(category)
@@ -103,23 +103,23 @@ class ChannelCategoriesRetrievalTestCase(TestCase):
         category ordered by name
         """
         expected = [
-            'Home & Garden',
-            'Home & Garden/Household Appliances',
-            'Home & Garden/Household Appliances/Laundry Appliances',
-            'Home & Garden/Household Appliances/Laundry Appliances/Dryers',
-            'Home & Garden/Kitchen & Dining',
-            'Home & Garden/Kitchen & Dining/Kitchen Tools & Utensils',
-            'Home & Garden/Kitchen & Dining/Kitchen Tools & Utensils/Food Graters & Zesters',
+            '/FooChannel/Home & Garden',
+            '/FooChannel/Home & Garden/Household Appliances',
+            '/FooChannel/Home & Garden/Household Appliances/Laundry Appliances',
+            '/FooChannel/Home & Garden/Household Appliances/Laundry Appliances/Dryers',
+            '/FooChannel/Home & Garden/Kitchen & Dining',
+            '/FooChannel/Home & Garden/Kitchen & Dining/Kitchen Tools & Utensils',
+            '/FooChannel/Home & Garden/Kitchen & Dining/Kitchen Tools & Utensils/Food Graters & Zesters',
         ]
-        paths = Channel.objects.get(name='foo').get_all_categories_paths()
+        paths = Channel.objects.get(name='FooChannel').get_all_categories_paths()
         self.assertEqual(paths, expected)
 
     def test_get_specific_category_path(self):
-        expected = 'Home & Garden/Household Appliances/Laundry Appliances'
+        expected = '/FooChannel/Home & Garden/Household Appliances/Laundry Appliances'
         path = self.channel.get_category('Laundry Appliances').path
         self.assertEqual(path, expected)
 
     def test_get_root_category_path(self):
-        expected = 'Home & Garden'
+        expected = '/FooChannel/Home & Garden'
         path = self.channel.get_category('Home & Garden').path
         self.assertEqual(path, expected)
