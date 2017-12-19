@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from mptt.models import MPTTModel, TreeForeignKey
+from django_extensions.db.fields import ShortUUIDField
 
 
 class CategoryManager(models.Manager):
@@ -26,6 +27,7 @@ class ChannelManager(models.Manager):
 
 
 class Node(MPTTModel):
+    id = ShortUUIDField(primary_key=True, editable=False)
     name = models.CharField(max_length=255)
     path = models.TextField(null=True, blank=True)
     parent = TreeForeignKey(
