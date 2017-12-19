@@ -103,7 +103,7 @@ class Category(Node):
         Get the channel this category belongs to
         returns: instance of channel
         """
-        return self.get_root()
+        return Channel.objects.get(tree_id=self.tree_id)
 
 
 class Channel(Node):
