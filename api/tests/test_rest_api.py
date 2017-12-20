@@ -62,6 +62,11 @@ class ChannelAPITestCase(APITestCase):
         self.assertIn('name', data['subcategories'][0])
         self.assertIn('path', data['subcategories'][0])
 
+    def test_get_channel_detail_should_be_case_insensitive(self):
+        url = reverse('channel-detail', args=['Foo'])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     def test_get_category_list(self):
         """
         Get the list of all categories

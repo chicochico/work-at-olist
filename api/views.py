@@ -25,7 +25,7 @@ class ChannelViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
     def retrieve(self, request, name=None):
-        channel = get_object_or_404(self.get_queryset(), name=name)
+        channel = get_object_or_404(self.get_queryset(), name__iexact=name)
         serializer = ChannelSerializer(channel, context={'request': request})
         return Response(serializer.data)
 
