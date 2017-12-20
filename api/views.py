@@ -29,6 +29,18 @@ class ChannelViewSet(viewsets.ViewSet):
         serializer = ChannelSerializer(channel, context={'request': request})
         return Response(serializer.data)
 
+    @list_route()
+    def search(self, request):
+        query = request.query_params.get('query', None)
+        if query is not None:
+            queryset = Channel.objects.filter(name__icontains=query)
+            serializer = ChannelListSerializer(queryset,
+                                               many=True,
+                                               context={'request': request})
+            return Response(serializer.data)
+        else:
+            return Response({'error': 'Empty query.'})
+
 
 class CategoryViewSet(viewsets.ViewSet):
     """API endpoints for Categories"""
@@ -45,5 +57,17 @@ class CategoryViewSet(viewsets.ViewSet):
         category = get_object_or_404(self.get_queryset(), pk=pk)
         serializer = CategorySerializer(category, context={'request': request})
         return Response(serializer.data)
+
+    @list_route()
+    def search(self, request):
+        query = request.query_params.get('query', None)
+        if query is not None:
+            queryset = Category.objects.filter(name__icontains=query)
+            serializer = CategoryListSerializer(queryset,
+                                                many=True,
+                                                context={'request': request})
+            return Response(serializer.data)
+        else:
+            return Response({'error': 'Empty query.'})
 
 

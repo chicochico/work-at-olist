@@ -76,7 +76,7 @@ class ChannelAPITestCase(APITestCase):
         self.assertIn('path', data[0])
         self.assertIn('channel', data[0])
 
-    def test_get_category_detail(self):
+    def test_get_category_detail_with_subcategories(self):
         """
         Get a category details
         """
@@ -104,6 +104,7 @@ class ChannelAPITestCase(APITestCase):
         response = self.client.get(url)
         expected = {'detail': 'Not found.'}
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, expected)
 
     def test_category_does_not_exist(self):
         """
@@ -114,3 +115,54 @@ class ChannelAPITestCase(APITestCase):
         expected = {'detail': 'Not found.'}
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data, expected)
+
+    def test_search_channels(self):
+        """
+        Search all channels that contain the keyword in the name
+        """
+        # channels that contains 'ba' in the name
+        url = reverse('channel-search') + '?query=ba'
+        response = self.client.get(url)
+        bar_url = response.wsgi_request.build_absolute_uri(reverse('channel-detail', args=['bar']))
+        baz_url = response.wsgi_request.build_absolute_uri(reverse('channel-detail', args=['baz']))
+        expected = [
+            {'url': baz_url, 'name': 'baz'},
+            {'url': bar_url, 'name': 'bar'},
+        ]
+        self.assertEqual(response.data, expected)
+
+    def test_empty_channel_search_result(self):
+        """
+        When nothing is found return empty result
+        """
+        url = reverse('channel-search') + '?query=this channel does not exist'
+        response = self.client.get(url)
+        expected = []
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, expected)
+
+    def test_search_categories(self):
+        """
+        Search all categories that contain the keyword
+        """
+        url = reverse('category-search') + '?query=appliances'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+
+    def test_empty_category_search_result(self):
+        """
+        When nothing is found return 404 code and reason
+        """
+        url = reverse('category-search') + '?query=no existe'
+        response = self.client.get(url)
+        expected = []
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, expected)
+
+    def test_root_redirect_to_api_docs(self):
+        """
+        Root url page should redirect to api docs
+        """
+        response = self.client.get('/', follow=True)
+        self.assertRedirects(response, '/api/v1/docs/')
