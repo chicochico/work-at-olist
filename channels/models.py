@@ -133,7 +133,7 @@ class Channel(Node):
         """
         super(Channel, self).validate_unique(*args, **kwargs)
         if not self.pk:
-            if self.__class__.objects.filter(name=self.name).exists():
+            if self.__class__.objects.filter(name__iexact=self.name).exists():
                 raise ValidationError(
                     {'name': 'Channel with this name already exists.'}
                 )

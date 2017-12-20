@@ -15,6 +15,10 @@ class ChannelCategoriesInsertionTestCase(TestCase):
         with self.assertRaises(ValidationError):
             Channel.objects.create(name='FooChannel')
 
+    def test_channel_name_unique_case_insensitive(self):
+        with self.assertRaises(ValidationError):
+            Channel.objects.create(name='foochannel')
+
     def test_add_single_category(self):
         category = ['Home & Garden']
         self.channel.add_category(category)
