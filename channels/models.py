@@ -75,7 +75,7 @@ class Node(MPTTModel):
         Get the number of subcategories in this node
         returns: count of subcategories that belongs to this node
         """
-        return Category.objects.filter(tree_id=self.tree_id).count()
+        return self.get_descendant_count()
 
 
 class Category(Node):
