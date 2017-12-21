@@ -6,30 +6,23 @@ class Command(BaseCommand):
     help = 'Add categories from comma separated file to channel.'
 
     def add_arguments(self, parser):
-        """
-        Add the arguments this command accepts
-        """
-        parser.add_argument(
-            'channel',
-            type=str,
-            help='Name for the channel.')
+        """Add the arguments this command accepts"""
+        parser.add_argument('channel',
+                            type=str,
+                            help='Name for the channel.')
 
-        parser.add_argument(
-            'file',
-            help='File location.',
-            type=str)
+        parser.add_argument('file',
+                            help='File location.',
+                            type=str)
 
-        parser.add_argument(
-            '--sep',
-            dest='separator',
-            default=';',
-            help='Specify the separator used in the input file default is (,).',
-            type=str)
+        parser.add_argument('--sep',
+                            dest='separator',
+                            default=';',
+                            help='Separator used in the input file default is (,).',
+                            type=str)
 
     def handle(self, *args, **options):
-        """
-        Do the work
-        """
+        """Do the commands work"""
         try:
             categories = self.parse_file(options['file'], options['separator'])
         except FileNotFoundError:
@@ -40,10 +33,9 @@ class Command(BaseCommand):
             return
 
         # get channel or insert new if it doesnt exist
+        # and remove all current categories
         channel, _ = Channel.objects.get_or_create(name=options['channel'])
-        # delete all existing categories from channel
         channel.delete()
-        # create new channel root
         channel.save()
 
         for category in categories:
@@ -57,11 +49,12 @@ class Command(BaseCommand):
 
     def parse_file(self, file, separator):
         """
-        Parse a file and returns a list of lists, each list
-        is the full path to a category.
+        Parse a file and returns a list of lists,
+        each list is the full path to a category.
         """
         try:
             data = open(file, 'r').read().splitlines()
-            return [s.split(separator) for s in data if s != '']
+            categories = [d.split(separator) for d in data if d != '']
+            return [[c.strip() for c in category] for category in categories]
         except FileNotFoundError:
             raise

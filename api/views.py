@@ -1,73 +1,46 @@
-from django.shortcuts import get_object_or_404, get_list_or_404
-
-from rest_framework import viewsets
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets, mixins, filters
 from rest_framework.response import Response
-from rest_framework.decorators import list_route
+from channels.models import Channel, Category
+from api.serializers import (CategorySerializer,
+                             CategoryListSerializer,
+                             ChannelSerializer,
+                             ChannelListSerializer)
 
-from channels.models import Channel
-from api.serializers import ListChannelSerializer, ChannelSerializer, CategorySerializer
 
-
-class ChannelViewSet(viewsets.ViewSet):
-    """
-    Endpoints to access channels.
-    """
+class ChannelViewSet(mixins.RetrieveModelMixin,
+                     mixins.ListModelMixin,
+                     viewsets.GenericViewSet):
+    """API endpoints for Channels, list, detail and search."""
+    queryset = Channel.objects.all()
     lookup_field = 'name'
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
-    def list(self, request):
-        """
-        List all avaliable channels and the url to access them.
-        """
-        queryset = Channel.objects.filter(parent=None)
-        serializer = ListChannelSerializer(queryset, many=True, context={'request': request})
-        return Response(serializer.data)
+    def get_serializer_class(self):
+        """Use different serializer for lists and detail"""
+        if self.action == 'list':
+            return ChannelListSerializer
+        elif self.action == 'retrieve':
+            return ChannelSerializer
+        return ChannelSerializer
 
     def retrieve(self, request, name=None):
-        """
-        Lookup a specific channel with its name.
-        """
-        queryset = Channel.objects.filter(parent=None)
-        channel = get_object_or_404(queryset, name=name)
+        """Get a Channel detail with case insensitive name."""
+        channel = get_object_or_404(self.queryset, name__iexact=name)
         serializer = ChannelSerializer(channel, context={'request': request})
         return Response(serializer.data)
 
 
-class CategoryViewSet(viewsets.ViewSet):
-    """
-    Endpoints to access category by their identification.
-    """
+class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """API endpoints for Categories, list, detail and search"""
+    queryset = Category.objects.all()
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
-    def retrieve(self, request, pk=None):
-        """
-        Get a instance of category.
-        """
-        queryset = Channel.objects.exclude(parent=None)
-        channel = get_object_or_404(queryset, pk=pk)
-        serializer = CategorySerializer(channel, context={'request': request})
-        return Response(serializer.data)
-
-
-class SearchViewSet(viewsets.ViewSet):
-    """
-    Provide search functionality for channels and categories.
-    """
-
-    @list_route(methods=['get'], url_path='category/(?P<category_name>.+)', url_name='category')
-    def search_category(self, request, category_name=None):
-        """
-        Search for categories that contains the search query.
-        """
-        queryset = Channel.objects.exclude(parent=None)
-        queryset = get_list_or_404(queryset, name__icontains=category_name)
-        serializer = CategorySerializer(queryset, many=True, context={'request': request})
-        return Response(serializer.data)
-
-    @list_route(methods=['get'], url_path='channel/(?P<channel_name>.+)', url_name='channel')
-    def search_channel(self, request, channel_name=None):
-        """
-        Search for channels that contains the search query.
-        """
-        queryset = Channel.objects.filter(parent=None)
-        queryset = get_list_or_404(queryset, name__icontains=channel_name)
-        serializer = ListChannelSerializer(queryset, many=True, context={'request': request})
-        return Response(serializer.data)
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return CategoryListSerializer
+        elif self.action == 'retrieve':
+            return CategorySerializer
+        return CategorySerializer

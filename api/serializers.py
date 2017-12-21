@@ -1,53 +1,81 @@
-from channels.models import Channel
+from django.urls import reverse
+from channels.models import Channel, Category
 from rest_framework import serializers
 
 
-class ChannelSerializer(serializers.HyperlinkedModelSerializer):
-    categories = serializers.SerializerMethodField()
-    categories_count = serializers.SerializerMethodField()
-
+class ChannelListSerializer(serializers.ModelSerializer):
+    """Serializer for lists of channels"""
     class Meta:
         model = Channel
-        fields = ('url', 'name', 'categories', 'categories_count')
-        lookup_field = 'name'
-        extra_kwargs = {
-            'url': {'lookup_field': 'name'}
-        }
-
-    def get_categories(self, obj):
-        return obj.get_all_categories_paths()
-
-    def get_categories_count(self, obj):
-        return obj.get_categories_count()
-
-
-class ListChannelSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Channel
-        fields = ('url', 'name')
-        lookup_field = 'name'
+        fields = (
+            'url',
+            'name',
+        )
         extra_kwargs = {
             'url': {'lookup_field': 'name'}
         }
 
 
-class CategorySerializer(serializers.Serializer):
-    url = serializers.HyperlinkedRelatedField(
-        source='pk',
-        view_name='category-detail',
-        many=False,
-        read_only=True,
-        lookup_field='pk',
-    )
-    name = serializers.CharField()
-    path = serializers.CharField()
-    subcategories = serializers.SerializerMethodField()
-    channel = serializers.HyperlinkedRelatedField(
-        many=False,
-        read_only=True,
-        view_name='channel-detail',
-        lookup_field='name',
-    )
+class CategoryListSerializer(serializers.ModelSerializer):
+    """Serializer for lists of categories"""
+    channel = serializers.HyperlinkedRelatedField(many=False,
+                                                  lookup_field='name',
+                                                  view_name='channel-detail',
+                                                  read_only=True)
 
-    def get_subcategories(self, obj):
-        return obj.get_all_categories_paths()
+    class Meta:
+        model = Category
+        fields = ('url', 'name', 'path', 'channel')
+
+
+class SubcategoryListSerializer(serializers.ModelSerializer):
+    """Serializer for lists of subcategories"""
+    class Meta:
+        model = Category
+        fields = ('url', 'name', 'path')
+
+
+class ChannelSerializer(serializers.ModelSerializer):
+    """Serializer for channel detail"""
+    subcategories = SubcategoryListSerializer(many=True)
+
+    class Meta:
+        model = Channel
+        fields = (
+            'url',
+            'name',
+            'subcategories_count',
+            'subcategories',
+        )
+        extra_kwargs = {
+            'url': {'lookup_field': 'name'}
+        }
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    """Serializer for category detail"""
+    channel = serializers.HyperlinkedRelatedField(view_name='channel-detail',
+                                                  lookup_field='name',
+                                                  many=False,
+                                                  read_only=True)
+    parent = serializers.SerializerMethodField()
+    subcategories = SubcategoryListSerializer(many=True)
+
+    class Meta:
+        model = Category
+        fields = (
+            'url',
+            'name',
+            'path',
+            'channel',
+            'parent',
+            'subcategories_count',
+            'subcategories',
+        )
+
+    def get_parent(self, obj):
+        if obj.level == 1:
+            return None
+        else:
+            url = reverse('category-detail', args=[obj.parent.pk])
+            return self.context['request'].build_absolute_uri(url)

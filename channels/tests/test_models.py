@@ -1,23 +1,23 @@
 from django.test import TestCase
-from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError
-from channels.models import Channel
+from channels.models import Channel, Category
 
 
 class ChannelCategoriesInsertionTestCase(TestCase):
     def setUp(self):
         """setup the channel used by unit tests"""
-        self.channel = Channel.create('FooChannel')
+        self.channel = Channel.objects.create(name='FooChannel')
 
     def test_channel_is_inserted_to_db(self):
         self.assertTrue(Channel.objects.filter(name='FooChannel').exists())
 
-    def test_is_channel_method(self):
-        self.assertTrue(self.channel.is_channel())
-
     def test_channel_name_must_be_unique(self):
         with self.assertRaises(ValidationError):
             Channel.objects.create(name='FooChannel')
+
+    def test_channel_name_unique_case_insensitive(self):
+        with self.assertRaises(ValidationError):
+            Channel.objects.create(name='foochannel')
 
     def test_add_single_category(self):
         category = ['Home & Garden']
@@ -54,12 +54,12 @@ class ChannelCategoriesInsertionTestCase(TestCase):
         children_count = len(self.channel.get_family())
         self.assertEqual(children_count, 7)
 
-    def test_no_duplicate_category_on_same_tree_level(self):
-        with self.assertRaises(IntegrityError):
-            Channel.objects.create(name='Home & Garden',
-                                   parent=self.channel)
-            Channel.objects.create(name='Home & Garden',
-                                   parent=self.channel)
+    def test_no_duplicate_category_on_same_level(self):
+        with self.assertRaises(ValidationError):
+            Category.objects.create(name='Home & Garden',
+                                    parent=self.channel)
+            Category.objects.create(name='Home & Garden',
+                                    parent=self.channel)
 
     def test_strip_white_spaces(self):
         category = [
@@ -69,14 +69,14 @@ class ChannelCategoriesInsertionTestCase(TestCase):
             '  Dryers '
         ]
         expected = [
-            'Home & Garden',
-            'Home & Garden/Household Appliances',
-            'Home & Garden/Household Appliances/Laundry Appliances',
-            'Home & Garden/Household Appliances/Laundry Appliances/Dryers',
+            '/FooChannel/Home & Garden',
+            '/FooChannel/Home & Garden/Household Appliances',
+            '/FooChannel/Home & Garden/Household Appliances/Laundry Appliances',
+            '/FooChannel/Home & Garden/Household Appliances/Laundry Appliances/Dryers',
         ]
         self.channel.add_category(category)
-        paths = self.channel.get_all_categories_paths()
-        self.assertEqual(paths, expected)
+        channel_categories = [c.path for c in self.channel.subcategories]
+        self.assertEqual(channel_categories, expected)
 
 
 class ChannelCategoriesRetrievalTestCase(TestCase):
@@ -91,38 +91,29 @@ class ChannelCategoriesRetrievalTestCase(TestCase):
              'Laundry Appliances',
              'Dryers'],
         ]
-        self.channel = Channel.create('foo')
-
+        self.channel = Channel.objects.create(name='FooChannel')
         for category in categories:
             self.channel.add_category(category)
+        self.channel.refresh_from_db()
 
     def test_get_categories_count(self):
-        count = self.channel.get_categories_count()
+        count = self.channel.subcategories_count
         self.assertEqual(count, 7)
 
-    def test_get_all_categories_full_paths(self):
+    def test_get_all_categories(self):
         """
-        all categories should return a list of paths to each
-        category ordered by name
+        all categories should return a queryset
         """
-        expected = [
-            'Home & Garden',
-            'Home & Garden/Household Appliances',
-            'Home & Garden/Household Appliances/Laundry Appliances',
-            'Home & Garden/Household Appliances/Laundry Appliances/Dryers',
-            'Home & Garden/Kitchen & Dining',
-            'Home & Garden/Kitchen & Dining/Kitchen Tools & Utensils',
-            'Home & Garden/Kitchen & Dining/Kitchen Tools & Utensils/Food Graters & Zesters',
-        ]
-        paths = Channel.objects.get(name='foo').get_all_categories_paths()
-        self.assertEqual(paths, expected)
+        expected = set(Category.objects.filter(tree_id=self.channel.tree_id))
+        categories = set(self.channel.subcategories)
+        self.assertEqual(categories, expected)
 
     def test_get_specific_category_path(self):
-        expected = 'Home & Garden/Household Appliances/Laundry Appliances'
+        expected = '/FooChannel/Home & Garden/Household Appliances/Laundry Appliances'
         path = self.channel.get_category('Laundry Appliances').path
         self.assertEqual(path, expected)
 
     def test_get_root_category_path(self):
-        expected = 'Home & Garden'
+        expected = '/FooChannel/Home & Garden'
         path = self.channel.get_category('Home & Garden').path
         self.assertEqual(path, expected)
