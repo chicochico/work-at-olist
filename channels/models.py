@@ -5,24 +5,16 @@ from django_extensions.db.fields import ShortUUIDField
 
 
 class CategoryManager(models.Manager):
-    """
-    Categories manager
-    """
+    """Categories manager"""
     def get_queryset(self):
-        """
-        A category is a tree node with a parent
-        """
+        """A category is a tree node with a parent"""
         return super(CategoryManager, self).get_queryset().exclude(parent=None)
 
 
 class ChannelManager(models.Manager):
-    """
-    Class for managing channels
-    """
+    """Class for managing channels"""
     def get_queryset(self):
-        """
-        A channel is a tree node without a parent
-        """
+        """A channel is a tree node without a parent"""
         return super(ChannelManager, self).get_queryset().filter(parent=None)
 
 
@@ -39,15 +31,13 @@ class Node(MPTTModel):
     )
 
     class MPTTMeta:
-        """
-        Insertion in the tree is ordered by name
-        """
+        """Insertion in the tree is ordered by name"""
         order_insertion_by = ['name']
 
     class Meta:
         """
-        Unique constraint to prevent duplicate category
-        in the same tree level
+        Unique constraint to prevent duplicate
+        category in the same tree level
         """
         unique_together = (('name', 'parent'),)
 
@@ -55,9 +45,7 @@ class Node(MPTTModel):
         return self.name
 
     def save(self, *args, **kwargs):
-        """
-        Override to call clean for manually created objects
-        """
+        """Override to call clean for manually created objects"""
         self.full_clean()
         super(Node, self).save(*args, **kwargs)
 
@@ -95,7 +83,6 @@ class Category(Node):
             raise ValidationError(
                 {'parent': 'Parent cannot be empty.'}
             )
-
         self.name = self.name.strip()
         self.path = self.parent.path + '/{}'.format(self.name)
 
@@ -115,10 +102,7 @@ class Channel(Node):
         proxy = True
 
     def clean(self):
-        """
-        Strip trailing and leading empty spaces
-        and validate empty parent
-        """
+        """Strip trailing and leading empty spaces and validate empty parent"""
         if self.parent:
             raise ValidationError(
                 {'parent': 'A channel contains no parent.'}
@@ -128,9 +112,7 @@ class Channel(Node):
         self.path = '/{}'.format(self.name)
 
     def validate_unique(self, *args, **kwargs):
-        """
-        A channel name should be unique
-        """
+        """A channel name should be unique"""
         super(Channel, self).validate_unique(*args, **kwargs)
         if not self.pk:
             if self.__class__.objects.filter(name__iexact=self.name).exists():
@@ -159,13 +141,9 @@ class Channel(Node):
         head, *tail = path
         parent, _ = Category.objects.get_or_create(name=head,
                                                    parent=self)
-        path = parent.name
-        parent.path = path
         parent.save()
         for element in tail:
             parent, _ = Category.objects.get_or_create(name=element,
                                                        parent=parent)
-            path = '/'.join([path, parent.name])
-            parent.path = path
             parent.save()
         return parent
