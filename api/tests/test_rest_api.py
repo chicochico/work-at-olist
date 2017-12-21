@@ -126,7 +126,7 @@ class ChannelAPITestCase(APITestCase):
         Search all channels that contain the keyword in the name
         """
         # channels that contains 'ba' in the name
-        url = reverse('channel-search') + '?query=ba'
+        url = reverse('channel-list') + '?search=ba'
         response = self.client.get(url)
         bar_url = response.wsgi_request.build_absolute_uri(reverse('channel-detail', args=['bar']))
         baz_url = response.wsgi_request.build_absolute_uri(reverse('channel-detail', args=['baz']))
@@ -140,7 +140,7 @@ class ChannelAPITestCase(APITestCase):
         """
         When nothing is found return empty result
         """
-        url = reverse('channel-search') + '?query=this channel does not exist'
+        url = reverse('channel-list') + '?search=this channel does not exist'
         response = self.client.get(url)
         expected = []
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -150,7 +150,7 @@ class ChannelAPITestCase(APITestCase):
         """
         Search all categories that contain the keyword
         """
-        url = reverse('category-search') + '?query=appliances'
+        url = reverse('category-list') + '?search=appliances'
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
@@ -159,7 +159,7 @@ class ChannelAPITestCase(APITestCase):
         """
         When nothing is found return 404 code and reason
         """
-        url = reverse('category-search') + '?query=no existe'
+        url = reverse('category-list') + '?search=no existe'
         response = self.client.get(url)
         expected = []
         self.assertEqual(response.status_code, status.HTTP_200_OK)
