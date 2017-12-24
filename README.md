@@ -8,15 +8,17 @@ This is my solution for the chalenge proposed by Olist.
 
 
 ## API
-The api provide the following endpoints:
+API endpoints:
 
-- List all channels
-- Channel detail with all categories of the channel
-- Category detail
-- Search channels names with keyword
-- Search categories with keyword, lists all categories with keyword
+| request           | path                                 | description             | query parameters
+|:-----------------:|--------------------------------------|-------------------------|-----------------------
+|        GET        | /api/v1/categories/                  | List all the categories | search, limit, offset
+|        GET        | /api/v1/categories/{id}/             | Get a category instance |
+|        GET        | /api/v1/channels/                    | List all channels       | search, limit, offset
+|        GET        | /api/v1/channels/{name}/             | Get a channel instance  |
 
-Checkout the API documentation and running demo at [heroku](https://young-garden-16956.herokuapp.com/api/v1/docs/).
+
+Checkout the full interactive API documentation and running demo at [heroku](https://young-garden-16956.herokuapp.com/api/v1/docs/).
 
 ### Interact with the API
 ```
@@ -86,10 +88,16 @@ Semicolon (;) is used as default separator, as the categories can have commas (,
 
 1. Clone this repo
 2. Create a virtualenv
-3. export DJANGO_SETTINGS_MODULE=work_at_olist.settings.dev
-4. run ./manage.py migrate
-5. run ./manage.py runserver
-6. access localhost:8000 in your browser
+3. Activate the virtualenv
+4. ```pip install -r requirements.txt```
+5. ```export DJANGO_SETTINGS_MODULE=work_at_olist.settings.dev```
+6. ```./manage.py migrate```
+7. ```./manage.py runserver```
+8. access http://localhost:8000/ in your browser
+
+### Running tests
+
+```./manage.py test```
 
 ### Note
 
@@ -111,6 +119,7 @@ If creating your own setting file, you can add the settings in the file instead 
 - [Django](https://www.djangoproject.com/) web framework.
 - [Django-REST](http://www.django-rest-framework.org/) framework to build endpoints.
 - [Django-MPTT](https://django-mptt.readthedocs.io/en/latest/index.html#) MPTT implementation for Django.
+- [Django-REST-Swagger](https://marcgibbons.com/django-rest-swagger/) Rest API documentation generator.
 - [Django-extensions](https://django-extensions.readthedocs.io/en/latest/) provides many usefull manage commands.
 - [Jupyter](http://jupyter.org/) notebook used to process testing data, and make interactions with the django app.
 - [Neovim](https://neovim.io/) text editor.

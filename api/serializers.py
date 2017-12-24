@@ -32,7 +32,7 @@ class SubcategoryListSerializer(serializers.ModelSerializer):
     """Serializer for lists of subcategories"""
     class Meta:
         model = Category
-        fields = ('url', 'name', 'path')
+        fields = ('url', 'path',)
 
 
 class ChannelSerializer(serializers.ModelSerializer):
