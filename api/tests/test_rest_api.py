@@ -29,13 +29,24 @@ class ChannelAPITestCase(APITestCase):
         self.channel.add_category(categories[1])
         self.category = Category.objects.get(parent=self.channel, name='Home & Garden')
 
+    def test_channel_list_is_paginated(self):
+        """Test pagination in list result"""
+        url = reverse('channel-list')
+        response = self.client.get(url)
+        data = response.data
+        self.assertEqual(data['count'], 3)
+        self.assertIn('count', data)
+        self.assertIn('next', data)
+        self.assertIn('previous', data)
+        self.assertIn('results', data)
+
     def test_get_channels_list(self):
         """
         Get the list of all channels
         """
         url = reverse('channel-list')
         response = self.client.get(url)
-        data = response.data
+        data = response.data['results']
         base_url = response.wsgi_request.build_absolute_uri()
         expected = [
             {'url': base_url + 'foo/', 'name': 'foo'},
@@ -59,7 +70,6 @@ class ChannelAPITestCase(APITestCase):
         self.assertIn('subcategories_count', data)
         self.assertIn('subcategories', data)
         self.assertIn('url', data['subcategories'][0])
-        self.assertIn('name', data['subcategories'][0])
         self.assertIn('path', data['subcategories'][0])
 
     def test_get_channel_detail_should_be_case_insensitive(self):
@@ -67,13 +77,24 @@ class ChannelAPITestCase(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_category_list_is_paginated(self):
+        """Test pagination in list result"""
+        url = reverse('category-list')
+        response = self.client.get(url)
+        data = response.data
+        self.assertEqual(data['count'], 12)
+        self.assertIn('count', data)
+        self.assertIn('next', data)
+        self.assertIn('previous', data)
+        self.assertIn('results', data)
+
     def test_get_category_list(self):
         """
         Get the list of all categories
         """
         url = reverse('category-list')
         response = self.client.get(url)
-        data = response.data
+        data = response.data['results']
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(data), 12)
         self.assertIn('url', data[0])
@@ -97,7 +118,6 @@ class ChannelAPITestCase(APITestCase):
         self.assertIn('subcategories_count', data)
         self.assertIn('subcategories', data)
         self.assertIn('url', data['subcategories'][0])
-        self.assertIn('name', data['subcategories'][0])
         self.assertIn('path', data['subcategories'][0])
 
     def test_channel_detail_does_not_exist(self):
@@ -134,7 +154,7 @@ class ChannelAPITestCase(APITestCase):
             {'url': baz_url, 'name': 'baz'},
             {'url': bar_url, 'name': 'bar'},
         ]
-        self.assertEqual(response.data, expected)
+        self.assertEqual(response.data['results'], expected)
 
     def test_empty_channel_search_result(self):
         """
@@ -144,7 +164,7 @@ class ChannelAPITestCase(APITestCase):
         response = self.client.get(url)
         expected = []
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, expected)
+        self.assertEqual(response.data['results'], expected)
 
     def test_search_categories(self):
         """
@@ -153,7 +173,7 @@ class ChannelAPITestCase(APITestCase):
         url = reverse('category-list') + '?search=appliances'
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data['results']), 2)
 
     def test_empty_category_search_result(self):
         """
@@ -163,7 +183,7 @@ class ChannelAPITestCase(APITestCase):
         response = self.client.get(url)
         expected = []
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, expected)
+        self.assertEqual(response.data['results'], expected)
 
     def test_root_redirect_to_api_docs(self):
         """
