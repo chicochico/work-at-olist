@@ -101,9 +101,7 @@ class ChannelCategoriesRetrievalTestCase(TestCase):
         self.assertEqual(count, 7)
 
     def test_get_all_categories(self):
-        """
-        all categories should return a queryset
-        """
+        """all categories should return a queryset"""
         expected = set(Category.objects.filter(tree_id=self.channel.tree_id))
         categories = set(self.channel.subcategories)
         self.assertEqual(categories, expected)
